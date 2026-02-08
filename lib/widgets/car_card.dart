@@ -9,7 +9,6 @@ class CarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // InkWell makes the whole card tappable for navigation
     return InkWell(
       onTap: () {
         // Navigate to the detail page when the card is tapped
