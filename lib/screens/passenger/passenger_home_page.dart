@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:sajilo_ride/data/model/car_model.dart';
 import 'package:sajilo_ride/widgets/car_card.dart';
 
-class PassengerHomeContent extends StatelessWidget {
-  PassengerHomeContent({super.key});
+class PassengerHomeContent extends StatefulWidget {
+  const PassengerHomeContent({super.key});
 
-  final List<CarModel> carList=[
+  @override
+  State<PassengerHomeContent> createState() => _PassengerHomeContentState();
+}
+
+class _PassengerHomeContentState extends State<PassengerHomeContent> {
+  LatLng _currentCenter = const LatLng(27.7172, 85.3240);
+  final MapController _mapController = MapController();
+
+  final List<CarModel> carList = [
     CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
         image:"assets/images/car1.jpg"),
     CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
@@ -18,47 +28,178 @@ class PassengerHomeContent extends StatelessWidget {
         image:"assets/images/car2.jpg"),
     CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
         image:"assets/images/car3.jpg"),
-
   ];
 
   @override
   Widget build(BuildContext context) {
+    // Detect if we are on a wide screen (Web/Tablet)
+    bool isWideScreen = MediaQuery.of(context).size.width > 900;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Choose Your Ride"),
+        title: const Text("Sajilo Ride - Choose Pickup"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
       ),
-      body: GridView.extent(
-        // On a phone: 1 column. On a tablet: 2-3 columns. On a desktop: 4+ columns.
-        maxCrossAxisExtent: 350,
-        padding: const EdgeInsets.all(16),
+      body: isWideScreen ? _buildWebView() : _buildMobileView(),
+    );
+  }
+
+  // --- WEB VIEW: Side-by-Side ---
+  Widget _buildWebView() {
+    return Row(
+      children: [
+        // Left Side: The Map (Takes 60% of screen)
+        Expanded(flex: 3, child: _buildMap()),
+
+        // Right Side: Car List (Takes 40% of screen)
+        Expanded(
+          flex: 2,
+          child: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text("Available Rides", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              ),
+              Expanded(child: _buildCarGrid(2)), // 2 columns for web sidebar
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --- MOBILE VIEW: Top-and-Bottom ---
+  Widget _buildMobileView() {
+    return Column(
+      children: [
+        // Top: Smaller Map (40% of height)
+        SizedBox(height: MediaQuery.of(context).size.height * 0.4, child: _buildMap()),
+
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Text("Select a Car", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        ),
+
+        // Bottom: Scrollable List (60% of height)
+        Expanded(child: _buildCarGrid(2)),
+      ],
+    );
+  }
+
+  // REUSABLE MAP WIDGET
+  Widget _buildMap() {
+    return Stack(
+      children: [
+        // 1. THE ACTUAL MAP
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: _currentCenter,
+            initialZoom: 14.0,
+            onPositionChanged: (pos, hasGesture) {
+              if (hasGesture && pos.center != null) {
+                setState(() {
+                  _currentCenter = pos.center!;
+                });
+              }
+            },
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.sajilo_ride.app',
+            ),
+          ],
+        ),
+
+        // 2. FIXED CENTER PIN (The Selector)
+        const Center(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: 35),
+            child: Icon(Icons.location_on, color: Colors.red, size: 45),
+          ),
+        ),
+
+        // 3. THE COORDINATE BOX (ADD THIS HERE)
+        Positioned(
+          top: 10,
+          left: 10,
+          right: 10,
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.search, color: Colors.orange),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    "Pickup: ${_currentCenter.latitude.toStringAsFixed(4)}, ${_currentCenter.longitude.toStringAsFixed(4)}",
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // REUSABLE CAR GRID
+  Widget _buildCarGrid(int crossAxisCount) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        childAspectRatio: 0.65,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: 0.75,  // Adjust this ratio to get the card shape you like
-        children: carList.map((car) {
-          // We use .map to convert the list of CarModel into a list of CarCard widgets
-          return CarCard(car: car);
-        }).toList(),
       ),
+      itemCount: carList.length,
+      itemBuilder: (context, index) {
+        return CarCard(car: carList[index], pickupLocation: _currentCenter);
+      },
     );
   }
 }
 
 
+
+
+
+
 /*import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:sajilo_ride/data/model/car_model.dart';
 import 'package:sajilo_ride/widgets/car_card.dart';
 
-class PassengerHomeContent extends StatelessWidget {
-   PassengerHomeContent({super.key});
+class PassengerHomeContent extends StatefulWidget {
+  const PassengerHomeContent({super.key});
 
-  final List<CarModel> carList=[
+  @override
+  State<PassengerHomeContent> createState() => _PassengerHomeContentState();
+}
+
+class _PassengerHomeContentState extends State<PassengerHomeContent> {
+  // Default location: Kathmandu, Nepal
+  LatLng _currentCenter = const LatLng(27.7172, 85.3240);
+  final MapController _mapController = MapController();
+
+  final List<CarModel> carList = [
     CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
         image:"assets/images/car1.jpg"),
     CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
-    image:"assets/images/car2.jpg"),
+        image:"assets/images/car2.jpg"),
     CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
-    image:"assets/images/car3.jpg"),
+        image:"assets/images/car3.jpg"),
     CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
         image:"assets/images/car4.jpg"),
     CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
@@ -68,35 +209,115 @@ class PassengerHomeContent extends StatelessWidget {
 
   ];
 
- // final List<Widget> _pages=[];
-
-
   @override
   Widget build(BuildContext context) {
-    final bool isWideScreen = MediaQuery.of(context).size.width >=600;
-
     return Scaffold(
-      body: isWideScreen ? GridView.builder(
-            itemCount: carList.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            childAspectRatio: 0.9,
-            //childAspectRatio: 4/5,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
+      appBar: AppBar(
+        title: const Text("Sajilo Ride"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
+      body: Stack(
+        children: [
+          // 1. THE MAP LAYER (Background)
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: _currentCenter,
+              initialZoom: 14.0,
+              onPositionChanged: (position, hasGesture) {
+                // Update the coordinates when the user moves the map
+                if (hasGesture) {
+                  setState(() {
+                    _currentCenter = position.center;
+                  });
+                }
+              },
+            ),
+            children: [
+              // Inside your FlutterMap children:
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                // Replace with your actual app package name from your pubspec.yaml/android manifest
+                userAgentPackageName: 'com.sajilo_ride.app',
+              ),
+            ],
           ),
-          itemBuilder: (context,index){
-            return CarCard(car: carList[index]
-            );
 
-      }) : ListView.builder(
-          itemCount: carList.length,
-          itemBuilder: (context,index){
-        return Padding(
-          padding: const EdgeInsets.only(bottom:12.0),
-          child: CarCard(car: carList[index]),
-        );
-      })
+          // 2. FIXED CENTER PIN (Visual indicator for pickup)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 35), // Offset icon so point touches center
+              child: Icon(Icons.location_on, color: Colors.red, size: 45),
+            ),
+          ),
+
+          // 3. CAR SELECTION LIST (Bottom Sheet Style)
+          DraggableScrollableSheet(
+            initialChildSize: 0.35, // Starts at 35% height
+            minChildSize: 0.15,     // Can shrink to 15%
+            maxChildSize: 0.9,      // Can expand to 90%
+            builder: (context, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
+                ),
+                child: Column(
+                  children: [
+                    // Handle bar at the top
+                    Container(
+                      margin: const EdgeInsets.symmetric(vertical: 10),
+                      width: 40,
+                      height: 5,
+                      decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
+                    ),
+                    const Text("Select a Ride Near You", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    const SizedBox(height: 10),
+
+                    // The Car Grid/List
+                    Expanded(
+                      child: GridView.builder(
+                        controller: scrollController, // Important: allows scrolling inside sheet
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.65, // Your optimized ratio
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                        ),
+                        itemCount: carList.length,
+                        itemBuilder: (context, index) {
+                          return CarCard(
+                            car: carList[index],
+                            pickupLocation: _currentCenter,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+
+          // 4. CURRENT LOCATION BUTTON
+          Positioned(
+            top: 20,
+            right: 20,
+            child: FloatingActionButton(
+              mini: true,
+              backgroundColor: Colors.white,
+              onPressed: () {
+                _mapController.move(const LatLng(27.7172, 85.3240), 14.0);
+              },
+              child: const Icon(Icons.my_location, color: Colors.black),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

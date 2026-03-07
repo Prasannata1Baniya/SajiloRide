@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
+import 'driver_map_page.dart'; // We will create this screen next
 
 class DriverHomeContent extends StatelessWidget {
   const DriverHomeContent({super.key});
@@ -16,15 +18,8 @@ class DriverHomeContent extends StatelessWidget {
         title: const Text("New Ride Requests"),
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {}, // StreamBuilder handles this automatically!
-          )
-        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // 1. LISTEN FOR NEW REQUESTS
         stream: FirebaseFirestore.instance
             .collection('bookings')
             .where('status', isEqualTo: 'pending')
@@ -53,7 +48,6 @@ class DriverHomeContent extends StatelessWidget {
     );
   }
 
-  // --- UI: REQUEST CARD ---
   Widget _buildRequestCard(BuildContext context, String docId, Map<String, dynamic> data, String driverId) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -69,23 +63,45 @@ class DriverHomeContent extends StatelessWidget {
                   radius: 30,
                   backgroundColor: Colors.orange.shade100,
                   backgroundImage: data['carImage'] != null ? AssetImage(data['carImage']) : null,
-                  child: data['carImage'] == null ? const Icon(Icons.car_rental) : null,
                 ),
                 const SizedBox(width: 15),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(data['carModel'], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text("Payment: ${data['paymentMethod']} (${data['paymentStatus']})",
-                          style: TextStyle(color: data['paymentStatus'] == 'paid' ? Colors.green : Colors.red)),
+                      Text(data['carModel'] ?? "Unknown Car", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text("Payment: ${data['paymentMethod']}",
+                          style: TextStyle(color: data['paymentStatus'] == 'paid' ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
                 Text("\$${data['price']}", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orange)),
               ],
             ),
+
+            // --- NEW: PICKUP LOCATION DISPLAY ---
             const Divider(height: 30),
+            Row(
+              children: [
+                const Icon(Icons.location_on, color: Colors.red),
+                const SizedBox(width: 10),
+                const Expanded(child: Text("Pickup: Kathmandu (Click to see on Map)", style: TextStyle(color: Colors.black54))),
+                TextButton.icon(
+                  onPressed: () {
+                    // Open a full-screen map to show the passenger's location
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => DriverMapPage(
+                      pickupLocation: LatLng(data['pickupLat'], data['pickupLng']),
+                      bookingId: docId,
+                    )));
+                  },
+                  icon: const Icon(Icons.map, size: 18),
+                  label: const Text("VIEW MAP"),
+                )
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
             Row(
               children: [
                 Expanded(
@@ -101,9 +117,7 @@ class DriverHomeContent extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 OutlinedButton(
-                  onPressed: () {
-                    // Logic to hide or decline for this specific driver
-                  },
+                  onPressed: () {},
                   child: const Text("DECLINE"),
                 ),
               ],
@@ -117,7 +131,6 @@ class DriverHomeContent extends StatelessWidget {
   // --- LOGIC: ACCEPT RIDE ---
   Future<void> _acceptRide(BuildContext context, String docId, String driverId) async {
     try {
-      // Update Firestore: Status becomes 'accepted' and assign the Driver
       await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
         'status': 'accepted',
         'driverId': driverId,
@@ -126,14 +139,11 @@ class DriverHomeContent extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Ride Accepted! Navigate to Pickup."), backgroundColor: Colors.green),
+          const SnackBar(content: Text("Ride Accepted!"), backgroundColor: Colors.green),
         );
-        // Next step: Navigate to "Active Ride" screen
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
-      }
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 
@@ -144,7 +154,7 @@ class DriverHomeContent extends StatelessWidget {
         children: [
           Icon(Icons.notifications_off_outlined, size: 80, color: Colors.grey.shade300),
           const SizedBox(height: 16),
-          const Text("Waiting for new requests...", style: TextStyle(fontSize: 18, color: Colors.grey)),
+          const Text("Searching for nearby riders...", style: TextStyle(fontSize: 18, color: Colors.grey)),
         ],
       ),
     );
