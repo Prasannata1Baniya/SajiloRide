@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sajilo_ride/data/model/car_model.dart';
+import 'package:sajilo_ride/screens/passenger/rides_page.dart';
 
 
 class BookingConfirmContent extends StatelessWidget {
@@ -75,7 +76,13 @@ class BookingConfirmContent extends StatelessWidget {
               const SizedBox(height: 15),
               TextButton(
                 onPressed: () {
-                  // TODO: Navigate to "My Rides" or "History" page
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyRidesPage(),
+                    ),
+                        (route) => false,
+                  );
                 },
                 child: const Text("View My Rides", style: TextStyle(color: Colors.orange, fontSize: 16)),
               ),

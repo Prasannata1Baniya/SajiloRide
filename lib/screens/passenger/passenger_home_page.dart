@@ -16,18 +16,18 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   final MapController _mapController = MapController();
 
   final List<CarModel> carList = [
-    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
-        image:"assets/images/car1.jpg"),
-    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
-        image:"assets/images/car2.jpg"),
-    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
-        image:"assets/images/car3.jpg"),
-    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
-        image:"assets/images/car4.jpg"),
-    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
-        image:"assets/images/car2.jpg"),
-    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
-        image:"assets/images/car3.jpg"),
+    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45,
+        fuelCapacity: 50, image: "assets/images/car1.jpg"),
+    CarModel(model: "Land Cruiser", distance: 500, pricePerHour: 60,
+        fuelCapacity: 80, image: "assets/images/car2.jpg"),
+    CarModel(model: "Tesla Model X", distance: 400, pricePerHour: 55,
+        fuelCapacity: 100, image: "assets/images/car3.jpg"),
+    CarModel(model: "Hyundai Tucson", distance: 600, pricePerHour: 35,
+        fuelCapacity: 55, image: "assets/images/car4.jpg"),
+    CarModel(model: "Kia Sportage", distance: 700, pricePerHour: 38,
+        fuelCapacity: 60, image: "assets/images/car2.jpg"),
+    CarModel(model: "Suzuki Vitara", distance: 900, pricePerHour: 30,
+        fuelCapacity: 45, image: "assets/images/car3.jpg"),
   ];
 
   @override
@@ -99,7 +99,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
             initialCenter: _currentCenter,
             initialZoom: 14.0,
             onPositionChanged: (pos, hasGesture) {
-              // We only update the center if the user actually moved the map (hasGesture)
               if (hasGesture) {
                 setState(() {
                   _currentCenter = pos.center;
