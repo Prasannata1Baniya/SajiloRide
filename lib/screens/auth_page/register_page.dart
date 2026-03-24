@@ -136,7 +136,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(25),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Container(
                         width: MediaQuery.of(context).size.width * 0.85,
                         padding: const EdgeInsets.all(24.0),
