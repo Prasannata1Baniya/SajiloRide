@@ -113,11 +113,11 @@ class MyRidesPage extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white, // Pure white card
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 15,
             offset: const Offset(0, 8),
           )
@@ -135,7 +135,7 @@ class MyRidesPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
+                      color: Colors.orange.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.directions_car_filled, color: Colors.orange, size: 28),
@@ -235,7 +235,7 @@ class MyRidesPage extends StatelessWidget {
     Color color = status == 'ongoing' ? Colors.blue : (status == 'pending' ? Colors.orange : Colors.green);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
       child: Text(status.toUpperCase(), style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
     );
   }
@@ -263,7 +263,8 @@ class MyRidesPage extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(30),
-            decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20)]),
+            decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow:
+            [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 20)]),
             child: Icon(Icons.no_transfer, size: 80, color: Colors.grey[300]),
           ),
           const SizedBox(height: 25),

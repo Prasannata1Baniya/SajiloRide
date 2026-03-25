@@ -8,87 +8,84 @@ class OnBoardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double width = MediaQuery.of(context).size.width;
+    final bool isDesktop = width > 650;
     return Scaffold(
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/onboarding_bg.png"),
+            image: isDesktop ?  AssetImage("assets/images/onboarding_bg.png") :
+            AssetImage("assets/images/onboarding_bg(mobile).png"),
             fit: BoxFit.cover,
           ),
         ),
-        // 1. Use SafeArea to avoid system UI (status bar, etc.)
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
-              // The Column now fills the vertical space of the SafeArea
               children: [
-                // --- TOP ROW ---
-                // --- TOP ROW ---
-                Row(
-                  children: [
-                    // Use 'Flexible' or 'Expanded' on the logo to ensure it doesn't
-                    // hog all the space if the screen is narrow
-                    const Flexible(
-                      child: Text(
-                        'SAJILO YATRA',
-                        style: AppTextStyles.headingWhiteLogo,
-                        overflow: TextOverflow.ellipsis, // Prevents text from breaking layout
-                      ),
-                    ),
-
-                    // Use one spacer instead of many to push buttons to the right
-                    const Spacer(),
-
-                    // Wrap the buttons in a Row or use smaller padding
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text('Home', style: AppTextStyles.smallTextWhite),
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text('About', style: AppTextStyles.smallTextWhite),
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text('Contact', style: AppTextStyles.smallTextWhite),
-                    ),
-                  ],
-                ),
-
-                // --- 2. SPACER ---
-                // This is the magic widget. It expands to take up all available
-                // vertical space, pushing everything after it to the bottom.
-                const Spacer(),
-
-                // --- BOTTOM BUTTON ---
-                Center(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      backgroundColor: Colors.orangeAccent,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 40, vertical: 15), // Make button bigger
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const LoginPage()),
-                      );
-                    },
-                    child: const Text(
-                      "Get Started",
-                      style: AppTextStyles.bodyTextWhite,
-                    ),
+              Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Flexible(
+                  child: Text(
+                    'SAJILO YATRA',
+                    style: AppTextStyles.headingWhiteLogo,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
 
-                // 3. Add some bottom padding so the button isn't stuck to the edge
-                const SizedBox(height: 40),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {},
+                      child: Text('Home',
+                          style: isDesktop ? AppTextStyles.smallTextWhite : const TextStyle(color: Colors.white, fontSize: 10)),
+                    ),
+
+                    if (isDesktop) ...[
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text('About', style: AppTextStyles.smallTextWhite),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text('Contact', style: AppTextStyles.smallTextWhite),
+                      ),
+                    ]
+                  ],
+                ),
               ],
+            ),
+
+            const Spacer(),
+
+            // --- BOTTOM BUTTON ---
+            Center(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  backgroundColor: Colors.orangeAccent,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 40, vertical: 15),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const LoginPage()),
+                  );
+                },
+                child: const Text(
+                  "Get Started",
+                  style: AppTextStyles.bodyTextWhite,
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
+            ],
             ),
           ),
         ),
