@@ -64,7 +64,8 @@ class _CarDetailPageState extends State<CarDetailPage> {
                           initialZoom: 15.0,
                         ),
                         children: [
-                          TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+                          TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.prasannata.sajilo_ride',),
                           MarkerLayer(markers: [
                             Marker(point: widget.pickupLocation, child: const Icon(Icons.location_on, color: Colors.red, size: 35)),
                           ]),

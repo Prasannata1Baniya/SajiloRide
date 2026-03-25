@@ -23,7 +23,6 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
-    // Get the correct list of destinations when the widget is first created.
     _destinations = getDestinationsForRole(widget.userRole);
   }
 
@@ -40,7 +39,7 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       body: Row(
         children: [
-          // Show side navigation rail for wide screens
+          //For wide screens
           if (isWide)
             NavigationRail(
               backgroundColor: Colors.orange,
@@ -59,20 +58,19 @@ class _AppShellState extends State<AppShell> {
               }).toList(),
             ),
 
-          // The main content of the selected page
           Expanded(
             child: _destinations[_currentIndex].screen,
           ),
         ],
       ),
 
-      // Show bottom navigation bar for mobile screens
+      // bottom navigation mobile ko lagi
       bottomNavigationBar: isWide
-          ? null // No bottom bar on wide screens
+          ? null
           : BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed, // Ensures all items are visible
+        type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey[600],

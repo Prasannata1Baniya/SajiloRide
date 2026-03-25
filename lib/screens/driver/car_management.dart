@@ -13,7 +13,6 @@ class CarManagementContent extends StatefulWidget {
 class _CarManagementContentState extends State<CarManagementContent> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers to handle text input
   final TextEditingController _modelController = TextEditingController();
   final TextEditingController _plateController = TextEditingController();
   final TextEditingController _colorController = TextEditingController();

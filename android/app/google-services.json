@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:121572106936:android:b717d16287aa1e767e0a4d",
+        "mobilesdk_app_id": "1:121572106936:android:39bcf7158f5d06307e0a4d",
         "android_client_info": {
-          "package_name": "com.example.sajilo_ride"
+          "package_name": "com.prasannata.sajilo_ride"
         }
       },
       "oauth_client": [],

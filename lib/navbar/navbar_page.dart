@@ -8,8 +8,6 @@ import '../screens/passenger/passenger_home_page.dart';
 import '../screens/passenger/profile.dart';
 import '../screens/passenger/ride_history.dart';
 
-
-// Role Enum
 enum UserRole { passenger, driver }
 
 class NavItem {
@@ -20,7 +18,7 @@ class NavItem {
 }
 
 class NavigationShell extends StatefulWidget {
-  final UserRole userRole; // <--- Pass the role here
+  final UserRole userRole;
 
   const NavigationShell({super.key, required this.userRole});
 

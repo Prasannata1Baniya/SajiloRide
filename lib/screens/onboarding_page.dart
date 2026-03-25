@@ -26,27 +26,34 @@ class OnBoardingPage extends StatelessWidget {
               // The Column now fills the vertical space of the SafeArea
               children: [
                 // --- TOP ROW ---
+                // --- TOP ROW ---
                 Row(
                   children: [
-                    const Text(
-                        'SAJILO YATRA', style: AppTextStyles.headingWhiteLogo),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                          'Home', style: AppTextStyles.smallTextWhite),
+                    // Use 'Flexible' or 'Expanded' on the logo to ensure it doesn't
+                    // hog all the space if the screen is narrow
+                    const Flexible(
+                      child: Text(
+                        'SAJILO YATRA',
+                        style: AppTextStyles.headingWhiteLogo,
+                        overflow: TextOverflow.ellipsis, // Prevents text from breaking layout
+                      ),
                     ),
+
+                    // Use one spacer instead of many to push buttons to the right
                     const Spacer(),
+
+                    // Wrap the buttons in a Row or use smaller padding
                     TextButton(
                       onPressed: () {},
-                      child: const Text(
-                          'About', style: AppTextStyles.smallTextWhite),
+                      child: const Text('Home', style: AppTextStyles.smallTextWhite),
                     ),
-                    const Spacer(),
                     TextButton(
                       onPressed: () {},
-                      child: const Text(
-                          'Contact', style: AppTextStyles.smallTextWhite),
+                      child: const Text('About', style: AppTextStyles.smallTextWhite),
+                    ),
+                    TextButton(
+                      onPressed: () {},
+                      child: const Text('Contact', style: AppTextStyles.smallTextWhite),
                     ),
                   ],
                 ),

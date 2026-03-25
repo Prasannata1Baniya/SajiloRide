@@ -8,7 +8,7 @@ import '../screens/passenger/passenger_home_page.dart';
 import '../screens/passenger/profile.dart';
 import '../screens/passenger/ride_history.dart';
 
-// enum to represent user roles. Safer than using strings
+//To represent user roles.
 enum UserRole { passenger, driver }
 
 // The model for a navigation item remains the same.
@@ -20,7 +20,6 @@ class NavItem {
   const NavItem({required this.label, required this.icon, required this.screen});
 }
 
-// --- DEFINE THE NAVIGATION ITEMS FOR EACH ROLE ---
 
 // Navigation items for the Passenger
  List<NavItem> passengerDestinations = [

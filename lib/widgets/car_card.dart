@@ -6,12 +6,12 @@ import '../screens/passenger/car_detail_page.dart';
 
 class CarCard extends StatelessWidget {
   final CarModel car;
-  final LatLng pickupLocation; // <--- Add this property
+  final LatLng pickupLocation;
 
   const CarCard({
     super.key,
     required this.car,
-    required this.pickupLocation, // <--- Add this to constructor
+    required this.pickupLocation,
   });
 
   @override
@@ -22,31 +22,34 @@ class CarCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         color: Colors.white,
         elevation: 5,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
             AspectRatio(
-              aspectRatio: 16 / 10,
+              aspectRatio: 1.5,
               child: Image.asset(
                 car.image,
                 fit: BoxFit.cover,
               ),
             ),
 
-            // --- DETAILS SECTION ---
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(car.model, style: AppTextStyles.bodyTextBlack),
-                  const SizedBox(height: 10),
+                  Text(
+                    car.model,
+                    style: AppTextStyles.bodyTextBlack,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
                   _buildInfoRow(
                     icon: Icons.gps_fixed,
-                    label: 'Distance',
+                    label: 'Dist',
                     value: '${car.distance.toStringAsFixed(0)} km',
                   ),
                   _buildInfoRow(
@@ -63,24 +66,23 @@ class CarCard extends StatelessWidget {
               ),
             ),
 
-            const Spacer(),
-
-            // --- BOOKING BUTTON ---
+            // Use a bit of padding for the button
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0, vertical: 4.0),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                    elevation: 5,
-                    backgroundColor: Colors.orange,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    )),
+                  backgroundColor: Colors.orange,
+                  minimumSize: const Size(double.infinity, 36),
+                  // Smaller height
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
                 onPressed: () => _navigateToDetails(context),
-                child: const Center(
-                    child: Text(
-                      "View Details",
-                      style: AppTextStyles.smallTextWhite,
-                    )),
+                child: const Text(
+                  "View Details",
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
               ),
             ),
           ],
@@ -89,162 +91,37 @@ class CarCard extends StatelessWidget {
     );
   }
 
-  // Refactored navigation to avoid code duplication
   void _navigateToDetails(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CarDetailPage(
-          car: car,
-          pickupLocation: pickupLocation, // <--- Pass the location
-        ),
+        builder: (context) =>
+            CarDetailPage(
+              car: car,
+              pickupLocation: pickupLocation,
+            ),
       ),
     );
   }
 
-  Widget _buildInfoRow({required IconData icon, required String label, required String value}) {
+  Widget _buildInfoRow(
+      {required IconData icon, required String label, required String value}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0),
+      padding: const EdgeInsets.only(bottom: 2.0),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.black54),
-          const SizedBox(width: 8),
+          Icon(icon, size: 14, color: Colors.black54),
+          const SizedBox(width: 4),
           Text(
             '$label: ',
-            style: const TextStyle(color: Colors.black54),
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
           ),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ],
       ),
     );
   }
 }
-
-
-
-
-/*import 'package:flutter/material.dart';
-import 'package:sajilo_ride/data/model/car_model.dart';
-import 'package:sajilo_ride/utils/text_styles.dart';
-import '../screens/passenger/car_detail_page.dart';
-
-class CarCard extends StatelessWidget {
-  final CarModel car;
-  const CarCard({super.key, required this.car});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        // Navigate to the detail page when the card is tapped
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CarDetailPage(car: car), // Pass the car data
-          ),
-        );
-      },
-      child: Card(
-        clipBehavior: Clip.antiAlias, // Ensures the image respects the card's rounded corners
-        color: Colors.white,
-        elevation: 5,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch children to fill width
-          children: [
-            AspectRatio(
-              aspectRatio: 16 / 10,
-              child: Image.asset(
-                car.image,
-                fit: BoxFit.cover,
-              ),
-            ),
-
-            // --- DETAILS SECTION ---
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(car.model, style: AppTextStyles.bodyTextBlack),
-                  const SizedBox(height: 10),
-                  _buildInfoRow(
-                    icon: Icons.gps_fixed,
-                    label: 'Distance',
-                    value: '${car.distance.toStringAsFixed(0)} km',
-                  ),
-                  _buildInfoRow(
-                    icon: Icons.local_gas_station_outlined, // Better icon for fuel
-                    label: 'Fuel',
-                    value: '${car.fuelCapacity.toStringAsFixed(0)} L',
-                  ),
-                  _buildInfoRow(
-                    icon: Icons.price_change_outlined, // Better icon for price
-                    label: 'Price',
-                    value: '\$${car.pricePerHour.toStringAsFixed(0)}/hr',
-                  ),
-                ],
-              ),
-            ),
-
-            const Spacer(),
-
-            // --- BOOKING BUTTON ---
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    elevation: 5,
-                    backgroundColor: Colors.orange,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    )),
-                // The onPressed logic is now handled by the InkWell wrapper
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CarDetailPage(car: car),
-                    ),
-                  );
-                },
-                child: const Center(
-                    child: Text(
-                      "View Details",
-                      style: AppTextStyles.smallTextWhite,
-                    )),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  Widget _buildInfoRow({required IconData icon, required String label, required String value}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.black54),
-          const SizedBox(width: 8),
-          Text(
-            '$label: ',
-            style: const TextStyle(color: Colors.black54),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-}
-*/

@@ -109,12 +109,12 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           children: [
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.sajilo_ride.app',
+              userAgentPackageName: 'com.prasannata.sajilo_ride',
             ),
           ],
         ),
 
-        // 2. FIXED CENTER PIN (The Selector)
+        // 2. CENTER PIN (The Selector)
         const Center(
           child: Padding(
             padding: EdgeInsets.only(bottom: 35),
@@ -152,13 +152,14 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     );
   }
 
-  // REUSABLE CAR GRID
+  // CAR GRID
   Widget _buildCarGrid(int crossAxisCount) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
+      physics: const BouncingScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        childAspectRatio: 0.65,
+        childAspectRatio: 0.6,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
       ),
