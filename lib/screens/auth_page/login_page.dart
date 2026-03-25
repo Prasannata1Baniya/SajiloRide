@@ -93,12 +93,9 @@ class _LoginPageState extends State<LoginPage> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                // FIX 1: Remove hardcoded width: 700 (it's breaking mobile layout)
                 width: MediaQuery.of(context).size.width * 0.9,
                 padding: const EdgeInsets.all(24.0),
                 decoration: BoxDecoration(
-                  // FIX 2: Alpha 0.1 might be too thin or appear solid
-                  // depending on the background. Try 0.15.
                   color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(
@@ -115,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 20),
                       TextFormField(
                         controller: _emailController,
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(color: Colors.black),
                         keyboardType: TextInputType.emailAddress,
                         decoration: inputDecorate.buildInputDecoration("Email"),
                         validator: (value) => (value == null || !value.contains('@')) ? 'Enter a valid email' : null,
@@ -123,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _passwordController,
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(color: Colors.black),
                         obscureText: true,
                         decoration: inputDecorate.buildInputDecoration("Password"),
                         validator: (value) => (value == null || value.length < 6) ? 'Password must be at least 6 characters' : null,
@@ -172,7 +169,7 @@ class _LoginPageState extends State<LoginPage> {
                         },
                         child: const Text(
                             "Don't have an account? Register",
-                            style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w400)
+                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w400)
                         ),
                       ),
                     ],

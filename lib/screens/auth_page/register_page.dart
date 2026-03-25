@@ -27,8 +27,6 @@ class _RegisterPageState extends State<RegisterPage> {
   String? error;
   bool _isLoading = false;
 
-  // --- WEB COMPATIBLE IMAGE STORAGE ---
-  // We store the image as bytes (Uint8List) so it works on Web and Mobile
   Uint8List? _imageData;
 
   final InputDecorate inputDecorate = InputDecorate();
@@ -78,7 +76,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
     final authProvider = Provider.of<AuthProviderMethod>(context, listen: false);
 
-    // Call the Provider (The "Trick" is inside the provider)
     final message = await authProvider.signUpWithEmailAndPassword(
       _nameController.text.trim(),
       _emailController.text.trim(),
@@ -260,10 +257,13 @@ class _RegisterPageState extends State<RegisterPage> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Text("Already have an account?", style: TextStyle(color: Colors.white70)),
+                                  const Text("Already have an account?",
+                                      style: TextStyle(color: Colors.white70)),
                                   TextButton(
                                     onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage())),
-                                    child: const Text("Login Now", style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                                    child: const Text("Login Now",
+                                        style: TextStyle(color: Colors.orangeAccent,
+                                            fontWeight: FontWeight.bold)),
                                   ),
                                 ],
                               ),
