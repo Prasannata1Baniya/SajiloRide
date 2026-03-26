@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
-import 'package:sajilo_ride/screens/passenger/passenger_home_page.dart';
+import '../../navbar/navbar_page.dart';
 
 class MyRidesPage extends StatelessWidget {
   const MyRidesPage({super.key});
@@ -70,10 +70,17 @@ class MyRidesPage extends StatelessWidget {
         elevation: 0.5,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.orange),
-          onPressed: () => Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const PassengerHomeContent()),
-                (route) => false,
-          ),
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => const NavigationShell(
+                  userRole: UserRole.passenger,
+                  initialIndex: 0,
+                ),
+              ),
+                  (route) => false,
+            );
+          },
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(

@@ -1,8 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.prasannata.sajilo_ride">
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="sajilo_ride"
         android:name="${applicationName}"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

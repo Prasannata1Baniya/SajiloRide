@@ -19,17 +19,30 @@ class NavItem {
 
 class NavigationShell extends StatefulWidget {
   final UserRole userRole;
+  final int initialIndex;
 
-  const NavigationShell({super.key, required this.userRole});
+  const NavigationShell({
+    super.key,
+    required this.userRole,
+    this.initialIndex = 0,
+  });
+
 
   @override
   State<NavigationShell> createState() => _NavigationShellState();
 }
 
 class _NavigationShellState extends State<NavigationShell> {
-  int _currentIndex = 0;
+  late int _currentIndex;
 
-  // Define Passenger Menu
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
+
+  //Passenger Menu
   final List<NavItem> _passengerDestinations = [
     const NavItem(label: 'Home', icon: Icons.home, screen: PassengerHomeContent()),
     const NavItem(label: "Booking", icon: Icons.book_online_outlined, screen: MyRidesPage()),
@@ -37,7 +50,7 @@ class _NavigationShellState extends State<NavigationShell> {
     const NavItem(label: 'Profile', icon: Icons.person_outline, screen: PassengerProfileContent()),
   ];
 
-  // Define Driver Menu
+  //Driver Menu
   final List<NavItem> _driverDestinations = [
     const NavItem(label: 'Home', icon: Icons.home_outlined, screen: DriverHomeContent()),
     const NavItem(label: 'Car', icon: Icons.directions_car, screen: CarManagementContent()),
@@ -47,7 +60,7 @@ class _NavigationShellState extends State<NavigationShell> {
 
   @override
   Widget build(BuildContext context) {
-    // Pick the list based on the role passed from Login
+    // Select the correct list based on user role
     final List<NavItem> activeDestinations =
     widget.userRole == UserRole.driver ? _driverDestinations : _passengerDestinations;
 
@@ -56,12 +69,16 @@ class _NavigationShellState extends State<NavigationShell> {
     return Scaffold(
       body: Row(
         children: [
+          // Sidebar for Web/Tablet
           if (isWide)
             NavigationRail(
               selectedIndex: _currentIndex,
               onDestinationSelected: (i) => setState(() => _currentIndex = i),
               labelType: NavigationRailLabelType.all,
-              leading: Image.asset("assets/images/SajiloRide_logo.png", height: 50),
+              leading: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Image.asset("assets/images/SajiloRide_logo.png", height: 50),
+              ),
               destinations: activeDestinations.map((item) {
                 return NavigationRailDestination(
                   icon: Icon(item.icon),
@@ -69,11 +86,15 @@ class _NavigationShellState extends State<NavigationShell> {
                 );
               }).toList(),
             ),
+
+          // Main Content Area
           Expanded(
             child: activeDestinations[_currentIndex].screen,
           ),
         ],
       ),
+
+      // Bottom NAVBAR for Mobile
       bottomNavigationBar: isWide
           ? null
           : BottomNavigationBar(
@@ -91,3 +112,4 @@ class _NavigationShellState extends State<NavigationShell> {
     );
   }
 }
+

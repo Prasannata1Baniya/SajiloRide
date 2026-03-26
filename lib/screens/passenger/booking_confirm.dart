@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sajilo_ride/data/model/car_model.dart';
-import '../../navbar/navbar_config.dart';
-import '../../widgets/app_shell.dart';
-
+import '../../navbar/navbar_page.dart';
 
 class BookingConfirmContent extends StatelessWidget {
   final CarModel car;
@@ -67,27 +65,32 @@ class BookingConfirmContent extends StatelessWidget {
                     backgroundColor: Colors.orange,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  onPressed: () {
+
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NavigationShell(userRole: UserRole.passenger, initialIndex: 0)),
+                            (route) => false,
+                      );
+                    },
+                    /*onPressed: () {
                     Navigator.of(context).popUntil((route) => route.isFirst);
-                  },
+                  },*/
                   child: const Text("Back to Home", style: TextStyle(color: Colors.white, fontSize: 18)),
                 ),
               ),
               const SizedBox(height: 15),
               TextButton(
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AppShell(
-                        userRole: UserRole.passenger,
-                        initialIndex: 1,
-                      ),
-                    ),
-                        (route) => false,
-                  );
-                },
-                child: const Text("View My Rides", style: TextStyle(color: Colors.orange, fontSize: 16)),
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) =>
+                      const NavigationShell(userRole: UserRole.passenger, initialIndex: 1)),
+                          (route) => false,
+                    );
+                  },
+                  child: const Text("View My Rides", style: TextStyle(color: Colors.orange, fontSize: 16)
+                ),
               ),
             ],
           ),
