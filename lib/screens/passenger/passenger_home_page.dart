@@ -32,7 +32,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
 
   @override
   Widget build(BuildContext context) {
-    // Detect if we are on a wide screen (Web/Tablet)
     bool isWideScreen = MediaQuery.of(context).size.width > 900;
 
     return Scaffold(
@@ -50,7 +49,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   Widget _buildWebView() {
     return Row(
       children: [
-        // Left Side: The Map (Takes 60% of screen)
         Expanded(flex: 3, child: _buildMap()),
 
         // Right Side: Car List (Takes 40% of screen)
@@ -62,7 +60,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                 padding: EdgeInsets.all(16.0),
                 child: Text("Available Rides", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               ),
-              Expanded(child: _buildCarGrid(2)), // 2 columns for web sidebar
+              Expanded(child: _buildCarGrid(2)),
             ],
           ),
         ),
@@ -154,12 +152,14 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
 
   // CAR GRID
   Widget _buildCarGrid(int crossAxisCount) {
+    final width = MediaQuery.of(context).size.width;
+    bool isDesktop = width > 600;
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       physics: const BouncingScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        childAspectRatio: 0.6,
+        childAspectRatio: isDesktop ? 0.75 : 0.6,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
       ),

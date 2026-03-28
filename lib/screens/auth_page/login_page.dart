@@ -23,7 +23,6 @@ class _LoginPageState extends State<LoginPage> {
 
   final InputDecorate inputDecorate = InputDecorate();
 
-  // --- UPDATED LOGIC ---
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -88,99 +87,101 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           const Text("Login", style: AppTextStyles.headingWhite),
           const SizedBox(height: 20),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(25),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.9,
-                padding: const EdgeInsets.all(24.0),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(
-                    width: 1.5,
-                    color: Colors.white.withValues(alpha: 0.3),
+
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 450,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(25),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(32.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(
+                      width: 1.5,
+                      color: Colors.white.withValues(alpha: 0.2),
+                    ),
                   ),
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset("assets/images/SajiloRide_logo.png", height: 100),
-                      const SizedBox(height: 20),
-                      TextFormField(
-                        controller: _emailController,
-                        style: const TextStyle(color: Colors.black),
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: inputDecorate.buildInputDecoration("Email"),
-                        validator: (value) => (value == null || !value.contains('@')) ? 'Enter a valid email' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _passwordController,
-                        style: const TextStyle(color: Colors.black),
-                        obscureText: true,
-                        decoration: inputDecorate.buildInputDecoration("Password"),
-                        validator: (value) => (value == null || value.length < 6) ? 'Password must be at least 6 characters' : null,
-                      ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset("assets/images/SajiloRide_logo.png", height: 100),
+                        const SizedBox(height: 30),
 
-                      // FIX 3: Error Text visibility
-                      if (error != null)
-                        Container(
-                          margin: const EdgeInsets.only(top: 15),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(8),
+                        // Email Field
+                        TextFormField(
+                          controller: _emailController,
+                          style: const TextStyle(color: Colors.white),
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: inputDecorate.buildInputDecoration("Email").copyWith(
+                            labelStyle: const TextStyle(color: Colors.white70),
                           ),
-                          child: Text(
-                            error!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                          validator: (value) => (value == null || !value.contains('@')) ? 'Enter a valid email' : null,
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Password Field
+                        TextFormField(
+                          controller: _passwordController,
+                          style: const TextStyle(color: Colors.white),
+                          obscureText: true,
+                          decoration: inputDecorate.buildInputDecoration("Password").copyWith(
+                            labelStyle: const TextStyle(color: Colors.white70),
+                          ),
+                          validator: (value) => (value == null || value.length < 6) ? 'Password must be at least 6 characters' : null,
+                        ),
+
+                        // Error Text
+                        if (error != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 20),
+                            child: Text(
+                              error!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+
+                        const SizedBox(height: 32),
+
+                        // Login Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 55,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                              backgroundColor: Colors.orangeAccent,
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: isLoading ? null : _handleLogin,
+                            child: isLoading
+                                ? const CircularProgressIndicator(color: Colors.white)
+                                : const Text("LOGIN", style: TextStyle(letterSpacing: 1.2, fontWeight: FontWeight.bold)),
                           ),
                         ),
 
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity, // Full width button looks better on mobile
-                        height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0, // Flat looks better with Glassmorphism
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            backgroundColor: Colors.orangeAccent,
-                          ),
-                          onPressed: isLoading ? null : _handleLogin,
-                          child: isLoading
-                              ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                          )
-                              : const Text("Login", style: AppTextStyles.bodyTextWhite),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
+                        const SizedBox(height: 20),
+
+                        // Register
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
-                                "Don't have an account? ",
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400)
-                            ),
-                            TextButton(
-                                onPressed: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage()));
-                                },
-                                child: Text("Register ",
-                                style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w400),
-                                ),
+                            const Text("Don't have an account? ", style: TextStyle(color: Colors.white70)),
+                            GestureDetector(
+                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage())),
+                              child: const Text("Register", style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -189,7 +190,7 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ),
     ),
-          ),
+   ),
         ],
       ),
     );

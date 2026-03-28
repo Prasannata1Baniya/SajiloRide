@@ -60,7 +60,7 @@ class CarCard extends StatelessWidget {
                   _buildInfoRow(
                     icon: Icons.price_change_outlined,
                     label: 'Price',
-                    value: '\$${car.pricePerHour.toStringAsFixed(0)}/hr',
+                    value: 'Rs ${car.pricePerHour.toStringAsFixed(0)}/hr',
                   ),
                 ],
               ),
