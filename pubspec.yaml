@@ -49,6 +49,7 @@ dependencies:
   esewa_flutter_sdk:
     path: ./external_sdk/esewa_flutter_sdk
   http: ^1.6.0
+  geocoding: ^4.0.0
 
 
 dev_dependencies:

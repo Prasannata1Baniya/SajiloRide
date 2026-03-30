@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sajilo_ride/data/model/car_model.dart';
 import 'package:sajilo_ride/widgets/car_card.dart';
+import 'package:geocoding/geocoding.dart';
 
 class PassengerHomeContent extends StatefulWidget {
   const PassengerHomeContent({super.key});
@@ -30,6 +31,31 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         fuelCapacity: 45, image: "assets/images/car3.jpg"),
   ];
 
+  String _address = "Fetching address...";
+
+  Future<void> _updateAddress(LatLng position) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+          position.latitude,
+          position.longitude
+      );
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        setState(() {
+          _address = "${place.name}, ${place.street}, ${place.locality}";
+        });
+      }
+    } catch (e) {
+      setState(() => _address = "Unknown Location");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _updateAddress(_currentCenter);
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isWideScreen = MediaQuery.of(context).size.width > 900;
@@ -51,7 +77,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       children: [
         Expanded(flex: 3, child: _buildMap()),
 
-        // Right Side: Car List (Takes 40% of screen)
         Expanded(
           flex: 2,
           child: Column(
@@ -101,6 +126,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                 setState(() {
                   _currentCenter = pos.center;
                 });
+                _updateAddress(pos.center);
               }
             },
           ),
@@ -120,26 +146,32 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           ),
         ),
 
-        // 3. THE COORDINATE BOX (ADD THIS HERE)
+        // 3. THE COORDINATE or ADDRESS BOX
         Positioned(
           top: 10,
           left: 10,
           right: 10,
           child: Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
             ),
             child: Row(
               children: [
-                const Icon(Icons.search, color: Colors.orange),
+                const Icon(Icons.location_on, color: Colors.orange),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    "Pickup: ${_currentCenter.latitude.toStringAsFixed(4)}, ${_currentCenter.longitude.toStringAsFixed(4)}",
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    _address,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -170,3 +202,5 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     );
   }
 }
+
+
