@@ -42,12 +42,20 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         position.latitude,
         position.longitude,
       );
+
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
 
+        final name = place.name ?? '';
+        final street = place.street ?? '';
+        final locality = place.locality ?? '';
+        final subLocality = place.subLocality ?? '';
+        final country = place.country ?? '';
+
         setState(() {
-          _address =
-          "${place.name ?? ''}, ${place.street ?? ''}, ${place.locality ?? ''}";
+          _address = [name, street, subLocality, locality, country]
+              .where((e) => e.isNotEmpty)
+              .join(', ');
         });
       } else {
         setState(() => _address = "No address found");
