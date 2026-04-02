@@ -13,6 +13,11 @@ class OnBoardingPage extends StatefulWidget {
 }
 
 class _OnBoardingPageState extends State<OnBoardingPage> {
+
+  final GlobalKey _heroKey = GlobalKey();
+  final GlobalKey _carKey = GlobalKey();
+  final GlobalKey _footerKey = GlobalKey();
+
   bool _isPressed = false;
 
   void _openDrawer() {
@@ -37,6 +42,17 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
       },
     );
   }
+  void scrollTo(GlobalKey key) {
+    final context = key.currentContext;
+
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOutCubic,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,103 +70,136 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        primary: true,
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          children: [
-            // --- 1. HERO SECTION ---
-            Container(
-              width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.96,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: isDesktop
-                      ? const AssetImage("assets/images/onboarding_bg.png")
-                      : const AssetImage("assets/images/onboarding_bg(mobile).png"),
-                  fit: BoxFit.cover,
+      body: Scrollbar(
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          primary: true,
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              // --- 1. HERO SECTION ---
+              Container(
+                key: _heroKey,
+                width: double.infinity,
+                height: MediaQuery.of(context).size.height * 0.96,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: isDesktop
+                        ? const AssetImage("assets/images/onboarding_bg.png")
+                        : const AssetImage("assets/images/onboarding_bg(mobile).png"),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0,),
+                    child: Column(
+                      children: [
+
+                        //navbar
+                        _buildTopNav(isDesktop),
+                        const Spacer(),
+                        /*const Text(
+                          "Premium Rides\nEverywhere in Nepal",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            shadows: [Shadow(color: Colors.black45, blurRadius: 10)],
+                          ),
+                        ),
+                        const SizedBox(height: 20),*/
+
+                        //GET STARTED
+                        _buildGetStartedButton(context),
+
+                        const SizedBox(height: 16),
+                        //Arrow down key
+                        GestureDetector(
+                          onTap: () => scrollTo(_carKey),
+                          child: const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              child: SafeArea(
+        
+              // 2. CAR PREVIEW SECTION
+              Container(
+                key: _carKey,
+                width: double.infinity,
+                //color: Colors.orangeAccent,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.orangeAccent,
+                      Colors.deepOrange,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0,),
+                  padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 20),
                   child: Column(
                     children: [
-                      //navbar
-                      _buildTopNav(isDesktop),
-                      const Spacer(),
-                      /*const Text(
-                        "Premium Rides\nEverywhere in Nepal",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          shadows: [Shadow(color: Colors.black45, blurRadius: 10)],
+                      const Text("Explore Our Fleet", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,
+                          color: Colors.white)),
+                      const Text("Login to book these premium vehicles", style: TextStyle(color: Colors.white70)),
+                      const SizedBox(height: 40),
+        
+                      // Grid of cars
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: previewCars.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: isDesktop ? 3 : 1,
+                          childAspectRatio: isDesktop ? 0.9 : 0.8,
+                          mainAxisSpacing: 25,
+                          crossAxisSpacing: 25,
                         ),
+                        itemBuilder: (context, index) {
+                          return AbsorbPointer(
+                            child: CarCard(car: previewCars[index],
+                                pickupLocation: const LatLng(27.7, 85.3),
+                              buttonColor: Colors.black,),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 20),*/
-                      _buildGetStartedButton(context),
-                      const SizedBox(height: 16),
-                      const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 40),
-
                     ],
                   ),
                 ),
               ),
-            ),
-
-            // 2. CAR PREVIEW SECTION
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 20),
-              child: Column(
-                children: [
-                  const Text("Explore Our Fleet", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const Text("Login to book these premium vehicles", style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 40),
-
-                  // Grid of cars
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: previewCars.length,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: isDesktop ? 3 : 1,
-                      childAspectRatio: isDesktop ? 0.9 : 0.8,
-                      mainAxisSpacing: 25,
-                      crossAxisSpacing: 25,
-                    ),
-                    itemBuilder: (context, index) {
-                      return AbsorbPointer(
-                        child: CarCard(car: previewCars[index],
-                            pickupLocation: const LatLng(27.7, 85.3)),
-                      );
-                    },
-                  ),
-                ],
+        
+              // --- 3. FOOTER SECTION ---
+              Container(
+                key: _footerKey,
+                width: double.infinity,
+                color: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 20),
+                child: Column(
+                  children: [
+                    const Text("SAJILO YATRA", style: AppTextStyles.headingWhiteLogo),
+                    const SizedBox(height: 30),
+                    _buildContactItem(Icons.phone, "+977 9806800001"),
+                    _buildContactItem(Icons.email, "support@sajiloride.com"),
+                    _buildContactItem(Icons.location_on, "Kathmandu, Nepal"),
+                    const SizedBox(height: 30),
+                    const Divider(color: Colors.white24),
+                    const SizedBox(height: 20),
+                    const Text("© 2025 Sajilo Ride. All rights reserved.", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
               ),
-            ),
-
-            // --- 3. FOOTER SECTION ---
-            Container(
-              width: double.infinity,
-              color: Colors.black,
-              padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 20),
-              child: Column(
-                children: [
-                  const Text("SAJILO YATRA", style: AppTextStyles.headingWhiteLogo),
-                  const SizedBox(height: 30),
-                  _buildContactItem(Icons.phone, "+977 9806800001"),
-                  _buildContactItem(Icons.email, "support@sajiloride.com"),
-                  _buildContactItem(Icons.location_on, "Kathmandu, Nepal"),
-                  const SizedBox(height: 30),
-                  const Divider(color: Colors.white24),
-                  const SizedBox(height: 20),
-                  const Text("© 2025 Sajilo Ride. All rights reserved.", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -169,12 +218,18 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
         if (isDesktop)
           Row(
             children: [
-              TextButton(onPressed: () {},
-                  child: const Text('Home', style: AppTextStyles.smallTextWhite)),
-              TextButton(onPressed: () {},
-                  child: const Text('About', style: AppTextStyles.smallTextWhite)),
-              TextButton(onPressed: () {},
-                  child: const Text('Contact', style: AppTextStyles.smallTextWhite)),
+              TextButton(
+                onPressed: () => scrollTo(_heroKey),
+                child: const Text('Home', style: AppTextStyles.smallTextWhite),
+              ),
+              TextButton(
+                onPressed: () => scrollTo(_carKey),
+                child: const Text('About', style: AppTextStyles.smallTextWhite),
+              ),
+              TextButton(
+                onPressed: () => scrollTo(_footerKey),
+                child: const Text('Contact', style: AppTextStyles.smallTextWhite),
+              ),
             ],
           ),
 
@@ -263,4 +318,3 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     );
   }
 }
-

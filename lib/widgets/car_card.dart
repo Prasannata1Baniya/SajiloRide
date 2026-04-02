@@ -7,11 +7,14 @@ import '../screens/passenger/car_detail_page.dart';
 class CarCard extends StatelessWidget {
   final CarModel car;
   final LatLng pickupLocation;
+  final Color? buttonColor;
+
 
   const CarCard({
     super.key,
     required this.car,
     required this.pickupLocation,
+    this.buttonColor,
   });
 
   @override
@@ -71,15 +74,13 @@ class CarCard extends StatelessWidget {
               ),
             ),
 
-            // Use a bit of padding for the button
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: 8.0, vertical: 4.0),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  minimumSize: const Size(double.infinity, 36),
-                  // Smaller height
+                  backgroundColor: buttonColor ?? Colors.orange,
+                  minimumSize: const Size(double.infinity, 42),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
                 ),

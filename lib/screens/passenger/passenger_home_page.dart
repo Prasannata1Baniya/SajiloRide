@@ -38,14 +38,22 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
 
   Future<void> _updateAddress(LatLng position) async {
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
       if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
+        final place = placemarks.first;
+
         setState(() {
-          _address = "${place.name}, ${place.street}, ${place.locality}";
+          _address =
+          "${place.name ?? ''}, ${place.street ?? ''}, ${place.locality ?? ''}";
         });
+      } else {
+        setState(() => _address = "No address found");
       }
     } catch (e) {
+      debugPrint("Geocoding error: $e");
       setState(() => _address = "Unknown Location");
     }
   }
@@ -53,7 +61,9 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   @override
   void initState() {
     super.initState();
-    _updateAddress(_currentCenter);
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _updateAddress(_currentCenter);
+    });
   }
 
   @override
@@ -91,8 +101,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
             }).toList();
           }
 
-          // 3. COMBINE BOTH LISTS
-          // Put the real drivers from Firebase at the top, then our assets
           final List<CarModel> allCars = [...liveCarList, ...carList];
 
           return isWideScreen ? _buildWebView(allCars) : _buildMobileView(allCars);
