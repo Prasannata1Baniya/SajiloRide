@@ -84,7 +84,7 @@ class _CarDetailPageState extends State<CarDetailPage> {
       });
 
       if (!mounted) return;
-      Navigator.pop(context); // Close loading
+      Navigator.pop(context);
 
       Navigator.push(context, MaterialPageRoute(builder: (context) => BookingConfirmContent(car: widget.car)));
     } catch (e) {
@@ -107,7 +107,19 @@ class _CarDetailPageState extends State<CarDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(widget.car.image, height: 250, width: double.infinity, fit: BoxFit.cover),
+            widget.car.image.startsWith('http')
+                ? Image.network(
+              widget.car.image,
+              height: 250,
+              width: double.infinity,fit: BoxFit.cover,
+            )
+                : Image.asset(
+              widget.car.image,
+              height: 250,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+            //Image.asset(widget.car.image, height: 250, width: double.infinity, fit: BoxFit.cover),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(

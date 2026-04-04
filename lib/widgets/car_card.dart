@@ -19,6 +19,7 @@ class CarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return InkWell(
       onTap: () => _navigateToDetails(context),
       child: Card(
@@ -130,4 +131,5 @@ class CarCard extends StatelessWidget {
       ),
     );
   }
+
 }

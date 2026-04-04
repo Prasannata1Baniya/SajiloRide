@@ -1,10 +1,13 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:sajilo_ride/data/model/car_model.dart';
 import 'package:sajilo_ride/widgets/car_card.dart';
-import 'package:geocoding/geocoding.dart';
+//import 'package:geocoding/geocoding.dart';
 
 class PassengerHomeContent extends StatefulWidget {
   const PassengerHomeContent({super.key});
@@ -38,6 +41,29 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
 
   Future<void> _updateAddress(LatLng position) async {
     try {
+      final url = Uri.parse(
+          'https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.latitude}&lon=${position.longitude}'
+      );
+
+      final response = await http.get(url, headers: {
+        'User-Agent': 'sajilo_ride_app'
+      });
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _address = data['display_name'] ?? "Location found";
+        });
+      }
+    } catch (e) {
+      debugPrint("Geocoding error: $e");
+      setState(() {
+        _address = "${position.latitude.toStringAsFixed(3)}, ${position.longitude.toStringAsFixed(3)}";
+      });
+    }
+  }
+  /*Future<void> _updateAddress(LatLng position) async {
+    try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
@@ -64,7 +90,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       debugPrint("Geocoding error: $e");
       setState(() => _address = "Unknown Location");
     }
-  }
+  }*/
 
   @override
   void initState() {
@@ -81,8 +107,8 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Sajilo Ride - Choose Pickup"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: Colors.orangeAccent,
+        foregroundColor: Colors.white,
         elevation: 1,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -104,7 +130,8 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                 pricePerHour: (data['pricePerHour'] ?? 0).toDouble(),
                 distance: (data['distance'] ?? 0).toDouble(),
                 fuelCapacity: (data['fuelCapacity'] ?? 0).toDouble(),
-                image: data['carImage'] ?? 'assets/images/placeholder.jpg',
+                //image: data['carImage'] ?? 'assets/images/placeholder.jpg',
+                image: data['carImage'] ?? 'https://via.placeholder.com/400x250.png?text=No+Image',
               );
             }).toList();
           }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
+import 'package:sajilo_ride/screens/passenger/rides_page.dart';
 
 import '../auth_page/login_page.dart';
 
@@ -59,7 +60,7 @@ class PassengerProfileContent extends StatelessWidget {
                     title: "My Ride History",
                     subtitle: "View your past trips and receipts",
                     onTap: () {
-                      // Navigate to your RideHistory screen
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_)=>MyRidesPage()));
                     },
                   ),
                   _buildProfileTile(
@@ -112,7 +113,7 @@ class PassengerProfileContent extends StatelessWidget {
     );
   }
 
-  // --- HELPER: TILE UI ---
+  // --- TILE UI ---
   Widget _buildProfileTile({required IconData icon, required String title, required String subtitle, required VoidCallback onTap}) {
     return ListTile(
       onTap: onTap,
@@ -127,17 +128,39 @@ class PassengerProfileContent extends StatelessWidget {
     );
   }
 
-  // --- LOGIC: LOGOUT ---
+  // --- LOGOUT ---
   void _handleLogout(BuildContext context, AuthProviderMethod auth) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Logout"),
-        content: const Text("Do you want to sign out of your passenger account?"),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        title: const Column(
+          children: [
+            Icon(Icons.logout_rounded, color: Colors.redAccent, size: 40),
+            SizedBox(height: 10),
+            Text("Sign Out", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+          ],
+        ),
+        content: const Text(
+          "Are you sure you want to log out of Sajilo Ride?",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.black54),
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("CANCEL", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+            ),
             onPressed: () async {
               await auth.signOut();
               if (context.mounted) {
@@ -147,7 +170,7 @@ class PassengerProfileContent extends StatelessWidget {
                 );
               }
             },
-            child: const Text("Logout", style: TextStyle(color: Colors.white)),
+            child: const Text("LOGOUT", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
