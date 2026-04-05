@@ -9,6 +9,7 @@ import 'package:sajilo_ride/screens/onboarding_page.dart';
 import 'package:sajilo_ride/widgets/app_shell.dart';
 import 'navbar/navbar_config.dart';
 import 'firebase_options.dart';
+import 'navbar/navbar_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -94,9 +95,8 @@ class RoleWrapper extends StatelessWidget {
         // 4. If we have data, extract the role.
         final data = snapshot.data!.data() as Map<String, dynamic>;
         final String roleString = data['role'] ??
-            'passenger'; // Default to passenger if role is null
+            'passenger';
 
-        // 5. Convert the role string to our UserRole enum.
         UserRole currentUserRole;
         if (roleString == 'driver') {
           currentUserRole = UserRole.driver;

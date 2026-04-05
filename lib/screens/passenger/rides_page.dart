@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
+import '../../navbar/navbar_config.dart';
 import '../../navbar/navbar_page.dart';
 
 class MyRidesPage extends StatelessWidget {
@@ -60,7 +61,6 @@ class MyRidesPage extends StatelessWidget {
     final userId = authProvider.user?.uid;
 
     return Scaffold(
-      // --- FIX: USE A LIGHT GREY BACKGROUND TO MAKE WHITE CARDS POP ---
       backgroundColor: const Color(0xFFF5F7F9),
       appBar: AppBar(
         title: const Text("My Active Rides",
@@ -134,7 +134,7 @@ class MyRidesPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         child: Column(
           children: [
-            // 1. TOP SECTION (Driver Info / Car Info)
+
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Row(
@@ -165,20 +165,23 @@ class MyRidesPage extends StatelessWidget {
               ),
             ),
 
-            // 2. MIDDLE SECTION (Trip Info)
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
-                  _buildInfoTile(Icons.circle_outlined, "Pickup Location", "Kathmandu, Nepal", Colors.blue),
+                  //_buildInfoTile(Icons.circle_outlined, "Pickup Location", "Kathmandu, Nepal", Colors.blue),
+                  // Pickup address — replace hardcoded string
+                  _buildInfoTile(Icons.circle_outlined, "Pickup",
+                      data['pickupAddress'] ?? 'Unknown', Colors.blue),
                   const SizedBox(height: 12),
-                  _buildInfoTile(Icons.payments_outlined, "Estimated Fare", "\$${data['price']}", Colors.green),
+                  _buildInfoTile(Icons.payments_outlined, "Estimated Fare",
+                      "Rs ${data['price']}", Colors.green),
                   const SizedBox(height: 20),
                 ],
               ),
             ),
 
-            // 3. BOTTOM ACTION SECTION
             Container(
               padding: const EdgeInsets.all(20),
               color: const Color(0xFFF9FAFB),
@@ -198,7 +201,9 @@ class MyRidesPage extends StatelessWidget {
                         const Text("Trip is live", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                         const Spacer(),
                         ElevatedButton(
-                          onPressed: () {}, // SOS Feature
+                          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("SOS — calling emergency services..."))
+                          ),
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.red, elevation: 0, shape: const StadiumBorder()),
                           child: const Text("SOS", style: TextStyle(color: Colors.white, fontSize: 12)),
                         ),
@@ -211,7 +216,12 @@ class MyRidesPage extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.shade100)),
-                      child: const Center(child: Text("Verification OTP: 4 8 2 1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.orange, letterSpacing: 2))),
+                      child: Center(
+                          child: Text("Verification OTP: ${data['otp'] ?? '----'}",
+                            style:  TextStyle(fontWeight: FontWeight.bold, fontSize: 16,
+                           color: Colors.orange, letterSpacing: 2),
+                          ),
+                      ),
                     ),
                     const SizedBox(height: 15),
                     SizedBox(
@@ -249,15 +259,23 @@ class MyRidesPage extends StatelessWidget {
 
   Widget _buildInfoTile(IconData icon, String label, String value, Color iconColor) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 20, color: iconColor),
         const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+              Text(
+                value,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ],
     );

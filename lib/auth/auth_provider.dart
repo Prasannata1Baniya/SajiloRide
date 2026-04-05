@@ -21,9 +21,9 @@ class AuthProviderMethod extends ChangeNotifier {
       if (doc.exists) {
         return doc.get('role') as String;
       }
-      return 'Passenger';
+      return 'passenger';
     } catch (e) {
-      return 'Passenger';
+      return 'passenger';
     }
   }
 
@@ -48,7 +48,8 @@ class AuthProviderMethod extends ChangeNotifier {
       await firebaseUser!.updateDisplayName(name);
 
       String dummyLicenseUrl = "";
-      if (role == 'Driver') {
+
+      if (role.toLowerCase() == 'driver') {
         dummyLicenseUrl = "https://cdn-icons-png.flaticon.com/512/3524/3524752.png";
       }
 
@@ -56,7 +57,7 @@ class AuthProviderMethod extends ChangeNotifier {
         'uid': firebaseUser.uid,
         'name': name,
         'email': email,
-        'role': role,
+        'role': role.toLowerCase(),
         'licenseImageUrl': dummyLicenseUrl,
         'isVerified': true,
         'createdAt': FieldValue.serverTimestamp(),

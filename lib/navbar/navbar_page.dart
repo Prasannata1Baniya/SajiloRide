@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sajilo_ride/navbar/navbar_config.dart';
 import 'package:sajilo_ride/screens/driver/driver_home_page.dart';
 import 'package:sajilo_ride/screens/passenger/rides_page.dart';
 import '../screens/driver/car_management.dart';
@@ -7,15 +8,6 @@ import '../screens/driver/profile.dart';
 import '../screens/passenger/passenger_home_page.dart';
 import '../screens/passenger/profile.dart';
 import '../screens/passenger/ride_history.dart';
-
-enum UserRole { passenger, driver }
-
-class NavItem {
-  final String label;
-  final IconData icon;
-  final Widget screen;
-  const NavItem({required this.label, required this.icon, required this.screen});
-}
 
 class NavigationShell extends StatefulWidget {
   final UserRole userRole;
@@ -26,7 +18,6 @@ class NavigationShell extends StatefulWidget {
     required this.userRole,
     this.initialIndex = 0,
   });
-
 
   @override
   State<NavigationShell> createState() => _NavigationShellState();
@@ -87,9 +78,15 @@ class _NavigationShellState extends State<NavigationShell> {
               }).toList(),
             ),
 
-          // Main Content Area
-          Expanded(
+          /*Expanded(
             child: activeDestinations[_currentIndex].screen,
+          ),*/
+
+          Expanded(
+            child: IndexedStack(
+              index: _currentIndex,
+              children: activeDestinations.map((item) => item.screen).toList(),
+            ),
           ),
         ],
       ),

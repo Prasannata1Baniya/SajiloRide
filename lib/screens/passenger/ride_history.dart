@@ -9,7 +9,7 @@ class RideHistoryContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Get the current user from your Provider
+
     final authProvider = Provider.of<AuthProviderMethod>(context);
     final userId = authProvider.user?.uid;
 
@@ -21,21 +21,32 @@ class RideHistoryContent extends StatelessWidget {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black,
       ),
-      // 2. Use StreamBuilder to get real-time history updates
+
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('bookings')
             .where('passengerId', isEqualTo: userId)
-            .where('status', whereIn: ['completed', 'cancelled']) // Only show finished rides
+            .where('status', whereIn: ['completed', 'cancelled'])
             .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
+          final userId = authProvider.user?.uid;
+          if (userId == null) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
+
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return _buildEmptyHistory();
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text("Something went wrong.\n${snapshot.error}",
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red)));
           }
 
           return ListView.builder(
@@ -51,9 +62,8 @@ class RideHistoryContent extends StatelessWidget {
     );
   }
 
-  // --- UI: The Individual History Card ---
   Widget _buildHistoryCard(Map<String, dynamic> ride) {
-    // Format the Firestore Timestamp into a readable date
+
     DateTime date = (ride['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
     String formattedDate = DateFormat('MMM dd, yyyy - hh:mm a').format(date);
 
@@ -96,14 +106,13 @@ class RideHistoryContent extends StatelessWidget {
           ],
         ),
         trailing: Text(
-          "\$${ride['price']}",
+          "\$Rs{ride['price']}",
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
       ),
     );
   }
 
-  // --- UI: Empty State ---
   Widget _buildEmptyHistory() {
     return Center(
       child: Column(

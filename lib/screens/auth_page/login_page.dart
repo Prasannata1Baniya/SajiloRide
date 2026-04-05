@@ -7,6 +7,10 @@ import 'package:sajilo_ride/utils/input_decoration.dart';
 import 'package:sajilo_ride/utils/text_styles.dart';
 import 'package:sajilo_ride/navbar/navbar_page.dart';
 
+import '../../navbar/navbar_config.dart';
+import '../../widgets/app_shell.dart';
+
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -20,30 +24,25 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   String? error;
   bool isLoading = false;
-
+  bool _isPasswordObscured = true;
   final InputDecorate inputDecorate = InputDecorate();
 
-  Future<void> _handleLogin() async {
+  /*Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     FocusScope.of(context).unfocus();
     setState(() {
       isLoading = true;
       error = null;
     });
-
     final authProvider = context.read<AuthProviderMethod>();
-
-    // 1. Authenticate
     final message = await authProvider.loginWithEmailAndPassword(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
 
     if (!mounted) return;
-
     if (message == 'Success') {
       String roleString = await authProvider.getUserRole(authProvider.user!.uid);
 
@@ -62,8 +61,78 @@ class _LoginPageState extends State<LoginPage> {
         error = message;
       });
     }
+  }*/
+  /*Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+    setState(() { isLoading = true; error = null; });
+
+    try {
+      final authProvider = context.read<AuthProviderMethod>();
+      final message = await authProvider.loginWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      if (!mounted) return;
+
+      if (message == 'Success') {
+        String roleString = await authProvider.getUserRole(authProvider.user!.uid);
+        if (!mounted) return;
+        final role = roleString == 'driver' ? UserRole.driver : UserRole.passenger;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => NavigationShell(userRole: role)),
+        );
+      } else {
+        setState(() { error = message; });
+      }
+    } finally {
+      if (mounted) setState(() { isLoading = false; });
+    }
+  }*/
+
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+    setState(() { isLoading = true; error = null; });
+
+    try {
+      final authProvider = context.read<AuthProviderMethod>();
+
+      // 1. Log in
+      final message = await authProvider.loginWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      if (message == 'Success') {
+        // 2. Fetch the role string from Firestore
+        String roleString = await authProvider.getUserRole(authProvider.user!.uid);
+
+        // 3. LOG THE ROLE TO THE CONSOLE (For your debugging)
+        debugPrint("Logged in as: $roleString");
+
+        // 4. CRITICAL FIX: Trim and lowercase the comparison
+        final role = (roleString.toLowerCase().trim() == 'driver')
+            ? UserRole.driver
+            : UserRole.passenger;
+
+        if (!mounted) return;
+
+        // 5. Navigate to the Shell with the CORRECT role
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => AppShell(userRole: role)),
+        );
+      } else {
+        setState(() { error = message; });
+      }
+    } catch (e) {
+      setState(() { error = "Login Error: $e"; });
+    } finally {
+      if (mounted) setState(() { isLoading = false; });
+    }
   }
-  bool _isPasswordObscured = true;
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +196,8 @@ class _LoginPageState extends State<LoginPage> {
                         TextFormField(
                           controller: _passwordController,
                           style: const TextStyle(color: Colors.white),
-                          obscureText: _isPasswordObscured,decoration: inputDecorate.buildInputDecoration("Password").copyWith(
+                          obscureText: _isPasswordObscured,
+                          decoration: inputDecorate.buildInputDecoration("Password").copyWith(
                           labelStyle: const TextStyle(color: Colors.white70),
                           suffixIcon: IconButton(
                             icon: Icon(

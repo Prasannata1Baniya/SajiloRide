@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-// --- IMPORTS FOR YOUR SCREENS ---
 import '../navbar/navbar_config.dart';
 import '../screens/driver/driver_home_page.dart';
+import '../screens/driver/earning.dart';
 import '../screens/passenger/rides_page.dart';
 import '../screens/driver/car_management.dart';
-import '../screens/driver/earning.dart';
 import '../screens/driver/profile.dart';
 import '../screens/passenger/passenger_home_page.dart';
 import '../screens/passenger/profile.dart';
@@ -61,7 +59,6 @@ class _AppShellState extends State<AppShell> {
   void _setupPushNotifications() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-    // Request permissions for Android 13+
     NotificationSettings settings = await messaging.requestPermission(
       alert: true,
       badge: true,
@@ -69,12 +66,11 @@ class _AppShellState extends State<AppShell> {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      // Get the FCM Token
+      // fcm token
       String? token = await messaging.getToken();
 
       if (token != null) {
         String uid = FirebaseAuth.instance.currentUser!.uid;
-        // Determine correct collection
         String collection = widget.userRole == UserRole.driver ? 'drivers' : 'users';
 
         // Save token to Firestore
@@ -85,7 +81,6 @@ class _AppShellState extends State<AppShell> {
       }
     }
 
-    // Listen for Foreground Messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

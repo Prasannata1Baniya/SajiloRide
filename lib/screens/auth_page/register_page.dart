@@ -22,7 +22,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
 
-  final List<String> roles = ['Passenger', 'Driver'];
+  //final List<String> roles = ['Passenger', 'Driver'];
+  final List<String> roles = ['passenger', 'driver'];
   String? selectedRole;
   String? error;
   bool _isLoading = false;
@@ -30,6 +31,8 @@ class _RegisterPageState extends State<RegisterPage> {
   Uint8List? _imageData;
 
   final InputDecorate inputDecorate = InputDecorate();
+  bool _isPasswordObscured = true;
+
 
   @override
   void dispose() {
@@ -39,7 +42,7 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  // --- LOGIC: PICK IMAGE (Works on Web & Mobile) ---
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(
@@ -48,7 +51,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
 
     if (pickedFile != null) {
-      // Convert the picked file into bytes so Image.memory can read it
       final bytes = await pickedFile.readAsBytes();
       setState(() {
         _imageData = bytes;
@@ -64,7 +66,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_formKey.currentState!.validate()) return;
 
     // Check for image if driver
-    if (selectedRole == 'Driver' && _imageData == null) {
+    if (selectedRole == 'driver' && _imageData == null) {
       setState(() => error = "Please upload your Driver's License first");
       return;
     }
@@ -154,7 +156,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                                 TextFormField(
                                   controller: _nameController,
-                                  style: const TextStyle(color: Colors.black,
+                                  style: const TextStyle(color: Colors.white70,
                                       fontWeight: FontWeight.bold),
                                   decoration: inputDecorate.buildInputDecoration("Full Name"),
                                   validator: (value) => value == null || value.isEmpty ? "Required" : null,
@@ -164,7 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 TextFormField(
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
-                                  style: const TextStyle(color: Colors.black,
+                                  style: const TextStyle(color: Colors.white70,
                                       fontWeight: FontWeight.bold),
                                   decoration: inputDecorate.buildInputDecoration("Email"),
                                   validator: (value) => (value == null || !value.contains('@')) ? "Invalid email" : null,
@@ -173,12 +175,24 @@ class _RegisterPageState extends State<RegisterPage> {
 
                                 TextFormField(
                                   controller: _passwordController,
-                                  obscureText: true,
-                                  style: const TextStyle(color: Colors.black,
-                                      fontWeight: FontWeight.bold),
-                                  decoration: inputDecorate.buildInputDecoration("Password"),
-                                  validator: (value) => (value == null || value.length < 6) ? "Min 6 characters" : null,
+                                    style: const TextStyle(color: Colors.white),
+                                    obscureText: _isPasswordObscured,
+                                    decoration: inputDecorate.buildInputDecoration("Password").copyWith(
+                                      labelStyle: const TextStyle(color: Colors.white70),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _isPasswordObscured ? Icons.visibility_off : Icons.visibility,
+                                          color: Colors.white70,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _isPasswordObscured = !_isPasswordObscured;
+                                          });
+                                        },
+                                      ),
                                 ),
+                                ),
+
                                 const SizedBox(height: 16),
 
                                 DropdownButtonFormField<String>(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sajilo_ride/navbar/navbar_page.dart';
 import 'package:sajilo_ride/screens/driver/driver_home_page.dart';
 import 'package:sajilo_ride/screens/passenger/rides_page.dart';
 import '../screens/driver/car_management.dart';
@@ -11,7 +12,7 @@ import '../screens/passenger/ride_history.dart';
 //To represent user roles.
 enum UserRole { passenger, driver }
 
-// The model for a navigation item remains the same.
+
 class NavItem {
   final String label;
   final IconData icon;
@@ -39,7 +40,7 @@ const List<NavItem> driverDestinations = [
   NavItem(label: 'Profile', icon: Icons.person_outline, screen: DriverProfileContent()),
 ];
 
-// A helper function to get the correct list based on the role.
+
 List<NavItem> getDestinationsForRole(UserRole role) {
   switch (role) {
     case UserRole.passenger:
@@ -48,3 +49,4 @@ List<NavItem> getDestinationsForRole(UserRole role) {
       return driverDestinations;
   }
 }
+
