@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -14,7 +15,6 @@ import 'package:sajilo_ride/data/model/car_model.dart';
 import 'package:sajilo_ride/screens/passenger/booking_confirm.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../navbar/navbar_config.dart';
-import 'package:crypto/crypto.dart';
 
 
 class PassengerHomeContent extends StatefulWidget {
@@ -85,22 +85,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     }
   }
 
-  /* Future<void> _getCurrentLocation() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
-      );
-      final current = LatLng(position.latitude, position.longitude);
-      _updateLocationState(current, true);
-    } catch (e) {
-      _updateLocationState(const LatLng(27.7172, 85.3240), true);
-    }
-  }*/
 
   void _updateLocationState(LatLng pos, bool isPickup) {
     setState(() {
@@ -241,98 +225,37 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
 
 
 
-  /*void initEsewaPayment() async {
-    const String url = "https://uat.esewa.com.np/epay/main"; // Use live URL for production
-
-    Map<String, String> params = {
-      'amt': '100',
-      'pdc': '0',
-      'psc': '0',
-      'txAmt': '0',
-      'tAmt': '100',
-      'pid': 'UNIQUE_ORDER_ID_123',
-      'scd': 'EPAYTEST',
-      'su': 'https://yourwebsite.com',
-      'fu': 'https://yourwebsite.com',
-    };
-
-    final Uri uri = Uri.parse(url).replace(queryParameters: params);
-
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Could not launch $uri';
-    }
-  }*/
-
-
-
-  /*void _processEsewaWebPayment() async {
-    // 1. Prepare Data
-    String amount = fare.toStringAsFixed(0);
-    String taxAmount = "0";
-    String totalAmount = amount;
-    String transactionUuid = "ride_${DateTime.now().millisecondsSinceEpoch}";
-    String productCode = "EPAYTEST"; // Use your real service code for production
-    String secret = secretKey; // eSewa Test Secret Key
-
-    // 2. Generate Message for Signature (Requirement for eSewa v2)
-    String message = "total_amount=$totalAmount,transaction_uuid=$transactionUuid,product_code=$productCode";
-
-    // 3. HMAC-SHA256 Hashing
-    var key = utf8.encode(secret);
-    var bytes = utf8.encode(message);
-    // Hmac must have a capital 'H'
-    var hmacSha256 = Hmac(sha256, key);
-    var digest = hmacSha256.convert(bytes);
-    // Convert to Base64 string for eSewa
-    String signature = base64.encode(digest.bytes);
-
-    // 4. Construct the URL (For Web, we pass data via Query Params for UAT)
-    // In production, you'd usually use a hidden HTML form, but for a demo, this works:
-    final Uri paymentUri = Uri.parse(
-        'https://rc-epay.esewa.com.np/api/epay/main/v2/form'
-            '?amount=$amount'
-            '&tax_amount=$taxAmount'
-            '&total_amount=$totalAmount'
-            '&transaction_uuid=$transactionUuid'
-            '&product_code=$productCode'
-            '&product_service_charge=0'
-            '&product_delivery_charge=0'
-            '&success_url=https://google.com'
-            '&failure_url=https://facebook.com'
-            '&signed_field_names=total_amount,transaction_uuid,product_code'
-            '&signature=$signature'
-    );
-
-    // 5. Launch in New Tab
-    if (await canLaunchUrl(paymentUri)) {
-      await launchUrl(paymentUri, mode: LaunchMode.externalApplication);
-      _showWebPaymentConfirmation();
-    }
+  String generateEsewaUrl({
+    required String amt,
+    required String pid,
+  }) {
+    return "https://uat.esewa.com.np/epay/main?"
+        "amt=$amt"
+        "&pdc=0"
+        "&psc=0"
+        "&txAmt=0"
+        "&tAmt=$amt"
+        "&pid=$pid"
+        "&scd=EPAYTEST"
+        "&su=https://your-success-url.com"
+        "&fu=https://your-failure-url.com";
   }
 
-  void _showWebPaymentConfirmation() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Confirming Payment"),
-        content: const Text("Did you complete the eSewa payment in the new tab?"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("NO")),
-          ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _confirmBooking(paymentStatus: "paid", method: "eSewa");
-              },
-              child: const Text("YES, BOOK NOW")
-          ),
-        ],
-      ),
-    );
-  }*/
 
+  Future<void> payWithEsewaWeb(double amount) async {
+    final pid = DateTime.now().millisecondsSinceEpoch.toString();
 
+    final url = Uri.parse(generateEsewaUrl(
+      amt: amount.toStringAsFixed(0),
+      pid: pid,
+    ));
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Could not launch eSewa';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -447,7 +370,8 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           liveCars = snapshot.data!.docs.map((doc) {
             var d = doc.data() as Map<String, dynamic>;
             return CarModel(model: d['carModel'] ?? "Car",
-                distance: 0, pricePerHour: 45, fuelCapacity: 0, image: d['carImage'] ?? "", driverId: doc.id);
+                distance: 0, pricePerHour: 45, fuelCapacity: 0,
+                image: d['carImage'] ?? "", driverId: doc.id);
           }).toList();
         }
         final all = [...liveCars, ...carList];
@@ -540,12 +464,24 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
               elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-            onPressed: (pickupLocation == null || dropOffLocation == null)
+            /*onPressed: (pickupLocation == null || dropOffLocation == null)
                 ? null
                 : () => selectedPayment == "eSewa"
                 ? _processEsewaSDKPayment()
-                : _confirmBooking(),
-            //: _processEsewaWebPayment(),
+                : _confirmBooking(),*/
+            onPressed: (pickupLocation == null || dropOffLocation == null)
+                ? null
+                : () {
+              if (selectedPayment == "eSewa") {
+                if (kIsWeb) {
+                  payWithEsewaWeb(fare);
+                } else {
+                  _processEsewaSDKPayment();
+                }
+              } else {
+                _confirmBooking();
+              }
+            },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -602,7 +538,5 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       ),
     );
   }
-
-
 }
 

@@ -9,7 +9,6 @@ import 'package:sajilo_ride/screens/onboarding_page.dart';
 import 'package:sajilo_ride/widgets/app_shell.dart';
 import 'navbar/navbar_config.dart';
 import 'firebase_options.dart';
-import 'navbar/navbar_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -110,4 +109,3 @@ class RoleWrapper extends StatelessWidget {
     );
   }
 }
-

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sajilo_ride/navbar/navbar_page.dart';
 import 'package:sajilo_ride/screens/driver/driver_home_page.dart';
 import 'package:sajilo_ride/screens/passenger/rides_page.dart';
 import '../screens/driver/car_management.dart';
