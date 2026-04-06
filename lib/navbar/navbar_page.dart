@@ -60,7 +60,7 @@ class _NavigationShellState extends State<NavigationShell> {
     return Scaffold(
       body: Row(
         children: [
-          // Sidebar for Web/Tablet
+          // Sidebar for Web
           if (isWide)
             NavigationRail(
               selectedIndex: _currentIndex,

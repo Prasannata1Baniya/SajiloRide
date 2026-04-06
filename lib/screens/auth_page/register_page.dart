@@ -111,14 +111,26 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            height: double.infinity,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/images/car_background.png"),
-                fit: BoxFit.cover,
-              ),
+          Positioned.fill(
+            child: Image.asset(
+              "assets/images/car_background.png",
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned.fill(
+            child: Container(
+              height: double.infinity,
+              width: double.infinity,
+               decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                   begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                 colors: [
+                    Colors.black.withValues(alpha: 0.5),
+                      Colors.black.withValues(alpha: 0.9),
+                      ],
+                  ),
+                 ),
             ),
           ),
 
@@ -137,7 +149,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(25),
                       child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                        filter: ImageFilter.blur(sigmaX: 200, sigmaY: 200),
                         child: Container(
                           width: MediaQuery.of(context).size.width * 0.85,
                           padding: const EdgeInsets.all(24.0),
@@ -172,12 +184,17 @@ class _RegisterPageState extends State<RegisterPage> {
                                     labelStyle: const TextStyle(color: Colors.white70),
                                     suffixIcon: Icon(Icons.email, color: Colors.white70,),
                                   ),
-                                  validator: (value) => (value == null || !value.contains('@')) ? "Invalid email" : null,
+                                  validator: (value) => (value == null || !value.contains('@'))
+                                      ? "Invalid email" : null,
                                 ),
                                 const SizedBox(height: 16),
 
                                 TextFormField(
                                   controller: _passwordController,
+                                  validator: (value) =>
+                                  (value == null || value.length < 6)
+                                      ? 'Short password'
+                                      : null,
                                     style: const TextStyle(color: Colors.white),
                                     obscureText: _isPasswordObscured,
                                     decoration: inputDecorate.buildInputDecoration("Password").copyWith(
@@ -213,7 +230,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
 
                                 // --- DRIVER LICENSE UI ---
-                                if (selectedRole == 'Driver') ...[
+                                if (selectedRole == 'driver') ...[
                                   const SizedBox(height: 20),
                                   const Align(
                                     alignment: Alignment.centerLeft,
@@ -236,12 +253,12 @@ class _RegisterPageState extends State<RegisterPage> {
                                         children: [
                                           Icon(Icons.add_a_photo_outlined, color: Colors.orangeAccent, size: 30),
                                           SizedBox(height: 5),
-                                          Text("Tap to upload License", style: TextStyle(color: Colors.white60, fontSize: 11)),
+                                          Text("Tap to upload License",
+                                              style: TextStyle(color: Colors.white60, fontSize: 11)),
                                         ],
                                       )
                                           : ClipRRect(
                                         borderRadius: BorderRadius.circular(15),
-                                        // FIXED: Use Image.memory instead of Image.file
                                         child: Image.memory(
                                           _imageData!,
                                           fit: BoxFit.cover,
