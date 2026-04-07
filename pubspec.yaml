@@ -54,6 +54,7 @@ dependencies:
   geolocator: ^14.0.2
   crypto: ^3.0.7
   webview_flutter: ^4.13.1
+  intl_phone_field: ^3.2.0
 
 
 dev_dependencies:

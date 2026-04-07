@@ -11,8 +11,10 @@ import 'package:latlong2/latlong.dart';
 import 'package:esewa_flutter_sdk/esewa_flutter_sdk.dart';
 import 'package:esewa_flutter_sdk/esewa_config.dart';
 import 'package:esewa_flutter_sdk/esewa_payment.dart';
+import 'package:sajilo_ride/core/constants/payment_config.dart';
 import 'package:sajilo_ride/data/model/car_model.dart';
 import 'package:sajilo_ride/screens/passenger/booking_confirm.dart';
+import 'package:sajilo_ride/screens/passenger/car_driver_detail.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../navbar/navbar_config.dart';
 
@@ -42,16 +44,40 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   bool isSelectingPickup = true;
 
 
-  static const String clientId = "JB0BBQ4aD0UqIThFJwAKBgAXEUkEGQUBBAwdOgABHD4DChwUAB0R";
-  static const String secretKey = "BhwIWQQADhIYSxILExMcAgFXFhcOBwAKBgAXEQ==";
 
   // Fallback Data
   final List<CarModel> carList = [
-    CarModel(model: "Sajilo Moto", distance: 0, pricePerHour: 20,
-        fuelCapacity: 0, image: "assets/images/car1.jpg", driverId: 'demo1'),
-    CarModel(model: "Sajilo Car", distance: 0, pricePerHour: 50,
-        fuelCapacity: 0, image: "assets/images/car2.jpg", driverId: 'demo2'),
+    CarModel(
+      model: "Sajilo Moto",
+      distance: 0,
+      pricePerHour: 20,
+      fuelCapacity: 0,
+      image: "assets/images/car1.jpg",
+      driverId: 'demo1',
+      carNumber: 'BA 1 PA 1234',
+      driverName: 'Sajilo Pilot',
+      phone: '9800000000',
+    ),
+    CarModel(
+      model: "Sajilo Car",
+      distance: 0,
+      pricePerHour: 50,
+      fuelCapacity: 0,
+      image: "assets/images/car2.jpg",
+      driverId: 'demo2',
+      carNumber: 'BA 2 PA 5678',
+      driverName: 'Sajilo Driver',
+      phone: '9811111111',
+    ),
   ];
+  /*final List<CarModel> carList = [
+    CarModel(model: "Sajilo Moto", distance: 0, pricePerHour: 20,
+        fuelCapacity: 0, image: "assets/images/car1.jpg", driverId: 'demo1',
+        carNumber: '', driverName: '', phone: ''),
+    CarModel(model: "Sajilo Car", distance: 0, pricePerHour: 50,
+        fuelCapacity: 0, image: "assets/images/car2.jpg", driverId: 'demo2',
+        carNumber: '', driverName: '', phone: ''),
+  ];*/
 
   @override
   void initState() {
@@ -85,26 +111,41 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     }
   }
 
-
   void _updateLocationState(LatLng pos, bool isPickup) {
+    setState(() {
+      if (isPickup) {
+        pickupLocation = pos;
+      } else{
+        dropOffLocation = pos;
+      }
+    });
+
+    if (pickupLocation != null && dropOffLocation != null) {
+      // Zoom out to show both markers
+      final bounds = LatLngBounds.fromPoints([pickupLocation!, dropOffLocation!]);
+      _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)));
+      _getRoute();
+    } else {
+      _mapController.move(pos, 14);
+    }
+    _getAddress(pos, isPickup);
+  }
+
+  /*void _updateLocationState(LatLng pos, bool isPickup) {
     setState(() {
       if (isPickup) {
         pickupLocation = pos;
         _currentCenter = pos;
       } else {
         dropOffLocation = pos;
-      }
-    });
+      }});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _mapController.move(pos, 14);
     });
     _getAddress(pos, isPickup);
     if (pickupLocation != null && dropOffLocation != null) _getRoute();
 
-    //_mapController.move(pos, 14);
-    // _getAddress(pos, isPickup);
-    //if (pickupLocation != null && dropOffLocation != null) _getRoute();
-  }
+  }*/
 
   Future<void> _getAddress(LatLng position, bool isPickup) async {
     try {
@@ -146,7 +187,9 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   void _processEsewaSDKPayment() {
     try {
       EsewaFlutterSdk.initPayment(
-        esewaConfig: EsewaConfig(environment: Environment.test, clientId: clientId, secretId: secretKey),
+        esewaConfig: EsewaConfig(environment: Environment.test,
+            clientId: PaymentConfig.clientId,
+            secretId: PaymentConfig.secretKey),
         esewaPayment: EsewaPayment(
           productId: "ride_${DateTime.now().millisecondsSinceEpoch}",
           productName: selectedCar!.model,
@@ -169,7 +212,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
 
-      await FirebaseFirestore.instance.collection('bookings').add({
+      /*await FirebaseFirestore.instance.collection('bookings').add({
         'passengerId': userId,
         'driverId': selectedCar!.driverId,
         'status': 'pending',
@@ -180,6 +223,23 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         'dropoffLat': dropOffLocation!.latitude,
         'dropoffLng': dropOffLocation!.longitude,
         'price': fare.toStringAsFixed(0),
+        'carModel': selectedCar!.model,
+        'paymentStatus': paymentStatus,
+        'paymentMethod': method,
+        'timestamp': FieldValue.serverTimestamp(),
+        'otp': (1000 + (DateTime.now().millisecondsSinceEpoch % 9000)).toString(),
+      });*/
+      await FirebaseFirestore.instance.collection('bookings').add({
+        'passengerId': userId,
+        'driverId': selectedCar!.driverId,
+        'status': 'pending',
+        'pickupAddress': _pickupAddress,
+        'dropoffAddress': _dropoffAddress,
+        'pickupLat': pickupLocation!.latitude,
+        'pickupLng': pickupLocation!.longitude,
+        'dropoffLat': dropOffLocation!.latitude,
+        'dropoffLng': dropOffLocation!.longitude,
+        'fare': fare,
         'carModel': selectedCar!.model,
         'paymentStatus': paymentStatus,
         'paymentMethod': method,
@@ -332,10 +392,11 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           _locationTile(Icons.circle, Colors.green, "Pickup", _pickupAddress, isSelectingPickup, () => setState(() => isSelectingPickup = true)),
           const SizedBox(height: 12),
 
-          if(!isSelectingPickup)
-          TextFormField(
-            onTap:  () => setState(() => isSelectingPickup = false),
+          _locationTile(Icons.location_on, Colors.red, "Drop-off",
+          _dropoffAddress, !isSelectingPickup, () => setState(() => isSelectingPickup = false)),
 
+          /*TextFormField(
+            onTap:  () => setState(() => isSelectingPickup = false),
             decoration: InputDecoration(
             suffixIcon: Icon(Icons.location_on,color: Colors.red,),
               labelText: "Drop-off",
@@ -343,9 +404,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               ),),
           ),
-          ),
-          //_locationTile(Icons.location_on, Colors.red, "Drop-off",
-            //_dropoffAddress, !isSelectingPickup, () => setState(() => isSelectingPickup = false)),
+          ),*/
           const Divider(height: 40),
           Expanded(child: _buildRideSelector()),
           if (selectedCar != null) _buildFareFooter(),
@@ -384,12 +443,35 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       builder: (context, snapshot) {
         List<CarModel> liveCars = [];
         if (snapshot.hasData) {
+          // Change this block in _buildRideSelector
           liveCars = snapshot.data!.docs.map((doc) {
             var d = doc.data() as Map<String, dynamic>;
-            return CarModel(model: d['carModel'] ?? "Car",
-                distance: 0, pricePerHour: 45, fuelCapacity: 0,
-                image: d['carImage'] ?? "", driverId: doc.id);
+            return CarModel(
+              model: d['model'] ?? "Car",            // Changed from 'carModel'
+              distance: 0,
+              pricePerHour: (d['pricePerHour'] ?? 45).toDouble(),
+              fuelCapacity: (d['fuelCapacity'] ?? 0).toDouble(),
+              image: d['image'] ?? "",               // Changed from 'carImage'
+              driverId: doc.id,
+              carNumber: d['carNumber'] ?? 'N/A',
+              driverName: d['driverName'] ?? 'Unknown Driver', // Changed from 'name'
+              phone: d['phone'] ?? 'No Phone',
+            );
           }).toList();
+         /* liveCars = snapshot.data!.docs.map((doc) {
+            var d = doc.data() as Map<String, dynamic>;
+            return CarModel(
+                     model: d['carModel'] ?? "Car",
+                         distance: 0,
+                     pricePerHour: (d['pricePerHour'] ?? 45).toDouble(),
+                      fuelCapacity: (d['fuelCapacity'] ?? 0).toDouble(),
+                        image: d['carImage'] ?? "",
+                     driverId: doc.id,
+                       carNumber: d['carNumber'] ?? 'N/A',
+                   driverName: d['name'] ?? 'Unknown Driver',
+                 phone: d['phone'] ?? 'No Phone',
+            );
+          }).toList();*/
         }
         final all = [...liveCars, ...carList];
         return ListView.separated(
@@ -398,27 +480,48 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           itemBuilder: (context, index) {
             bool isSel = selectedCar?.driverId == all[index].driverId;
             return ListTile(
-              onTap: () {
-                setState(() {
-                  selectedCar = all[index];
-                  fare = distance > 0
-                      ? distance * all[index].pricePerHour
-                      : all[index].pricePerHour;
-                });
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("${all[index].model} selected"),
-                    duration: const Duration(seconds: 1),
+              onTap: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CarDriverDetailPage(car: all[index]),
                   ),
                 );
+
+                 if (!context.mounted) return;
+                //  Only when user confirms ride
+                if (result == true) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Ride confirmed with ${all[index].driverName}"),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                  setState(() {
+                    selectedCar = all[index];
+                    fare = distance > 0
+                        ? distance * all[index].pricePerHour
+                        : all[index].pricePerHour;
+                  });
+                }
               },
 
-              leading: CircleAvatar(
+             /*leading: CircleAvatar(
                 radius: 25,
                 backgroundImage: all[index].image.startsWith('http')
                     ? NetworkImage(all[index].image)
                     : AssetImage(all[index].image) as ImageProvider,
+              ),*/
+
+              leading: CircleAvatar(
+                radius: 25,
+                backgroundColor: Colors.grey[200],
+                backgroundImage: all[index].image.isNotEmpty
+                    ? (all[index].image.startsWith('http')
+                    ? NetworkImage(all[index].image)
+                    : AssetImage(all[index].image) as ImageProvider)
+                    : const AssetImage('assets/images/car1.jpg'), // Add a default asset
               ),
 
               title: Text(
@@ -428,10 +531,17 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
 
               subtitle: const Text("⚡ Close by • 4 Seats"),
 
-              trailing: Text(
-                "Rs ${(distance > 0 ? distance * all[index].pricePerHour :
-                all[index].pricePerHour).toStringAsFixed(0)}",
+              /*trailing: Text(
+                "Rs ${(distance > 0
+                    ? distance * all[index].pricePerHour
+                    : all[index].pricePerHour).toStringAsFixed(0)}",
                 style: const TextStyle(fontWeight: FontWeight.bold),
+              ),*/
+              trailing: Text(
+                distance > 0
+                    ? "Rs ${(distance * all[index].pricePerHour).toStringAsFixed(0)}"
+                    : "Calculating...",
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
               ),
 
               selected: isSel,

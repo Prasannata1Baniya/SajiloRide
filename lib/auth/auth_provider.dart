@@ -39,7 +39,7 @@ class AuthProviderMethod extends ChangeNotifier {
 
   // --- REGISTER ---
   Future<String> signUpWithEmailAndPassword(
-      String name, String email, String password, String role) async {
+      String name, String email, String password,String phone,String role) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
@@ -57,6 +57,7 @@ class AuthProviderMethod extends ChangeNotifier {
         'uid': firebaseUser.uid,
         'name': name,
         'email': email,
+        'phone':phone,
         'role': role.toLowerCase(),
         'licenseImageUrl': dummyLicenseUrl,
         'isVerified': true,

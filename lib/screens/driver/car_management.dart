@@ -1,9 +1,9 @@
+
 import 'dart:convert';
 import 'dart:io' show File;
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,6 +25,7 @@ class _CarManagementContentState extends State<CarManagementContent> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _distanceController = TextEditingController();
   final TextEditingController _fuelCapacityController = TextEditingController();
+  final TextEditingController _numController = TextEditingController();
 
   String _fuelType = 'Petrol';
   String? _carImageUrl;
@@ -45,6 +46,7 @@ class _CarManagementContentState extends State<CarManagementContent> {
     _priceController.dispose();
     _distanceController.dispose();
     _fuelCapacityController.dispose();
+    _numController.dispose(); // FIX: Dispose it
     super.dispose();
   }
 
@@ -66,27 +68,40 @@ class _CarManagementContentState extends State<CarManagementContent> {
 
   void _loadData(Map<String, dynamic> data) {
     if (_isDataLoaded) return;
+    _modelController.text = data['model'] ?? '';
+    _plateController.text = data['carNumber'] ?? '';
+    _numController.text = data['phone'] ?? '';
+    _priceController.text = (data['pricePerHour'] ?? '').toString();
+    _distanceController.text = (data['distance'] ?? '').toString();
+    _fuelCapacityController.text = (data['fuelCapacity'] ?? '').toString();
+    _carImageUrl = data['image'];
+    _colorController.text = data['carColor'] ?? '';
+    _fuelType = data['fuelType'] ?? 'Petrol';
+    _isDataLoaded = true;
+  }
+
+  /*void _loadData(Map<String, dynamic> data) {
+    if (_isDataLoaded) return;
     _modelController.text = data['carModel'] ?? '';
-    _plateController.text = data['plateNumber'] ?? '';
+    _plateController.text = data['carNumber'] ?? data['plateNumber'] ?? '';
     _colorController.text = data['carColor'] ?? '';
     _priceController.text = (data['pricePerHour'] ?? '').toString();
     _distanceController.text = (data['distance'] ?? '').toString();
     _fuelCapacityController.text = (data['fuelCapacity'] ?? '').toString();
+    _numController.text = data['phone'] ?? ''; // Load phone
     _fuelType = data['fuelType'] ?? 'Petrol';
     _carImageUrl = data['carImage'];
     _isDataLoaded = true;
   }
+*/
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProviderMethod>(context);
     final driverId = authProvider.user?.uid;
 
-    // Guard: if not logged in, show error
     if (driverId == null) {
-      return const Scaffold(
-        body: Center(child: Text("Error: Not logged in.")),
-      );
+      return const Scaffold(body: Center(child: Text("Error: Not logged in.")));
     }
 
     return Scaffold(
@@ -96,17 +111,10 @@ class _CarManagementContentState extends State<CarManagementContent> {
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('drivers')
-            .doc(driverId)
-            .snapshots(),
+        stream: FirebaseFirestore.instance.collection('drivers').doc(driverId).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
           }
 
           if (snapshot.hasData && snapshot.data!.exists) {
@@ -116,130 +124,72 @@ class _CarManagementContentState extends State<CarManagementContent> {
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    const Text(
-                      "Car Photo",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  const Text("Car Photo", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
 
-                    // Image picker
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 200,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(color: Colors.orange),
-                          image: _webImage != null
-                              ? DecorationImage(
-                            image: MemoryImage(_webImage!),
-                            fit: BoxFit.cover,
-                          )
-                              : (_mobileImage != null
-                              ? DecorationImage(
-                            image: FileImage(_mobileImage!),
-                            fit: BoxFit.cover,
-                          )
-                              : (_carImageUrl != null
-                              ? DecorationImage(
-                            image: NetworkImage(_carImageUrl!),
-                            fit: BoxFit.cover,
-                          )
-                              : null)),
-                        ),
-                        child: (_webImage == null &&
-                            _mobileImage == null &&
-                            _carImageUrl == null)
-                            ? const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add_a_photo,
-                                size: 50, color: Colors.orange),
-                            SizedBox(height: 8),
-                            Text("Tap to upload car image"),
-                          ],
-                        )
-                            : null,
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      height: 200, width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200], borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: Colors.orange),
+                        image: _webImage != null
+                            ? DecorationImage(image: MemoryImage(_webImage!), fit: BoxFit.cover)
+                            : (_mobileImage != null
+                            ? DecorationImage(image: FileImage(_mobileImage!), fit: BoxFit.cover)
+                            : (_carImageUrl != null
+                            ? DecorationImage(image: NetworkImage(_carImageUrl!), fit: BoxFit.cover)
+                            : null)),
                       ),
+                      child: (_webImage == null && _mobileImage == null && _carImageUrl == null)
+                          ? const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_a_photo, size: 50, color: Colors.orange),
+                          Text("Tap to upload car image"),
+                        ],
+                      ) : null,
                     ),
+                  ),
 
-                    const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
-                    _buildTextField(_modelController, "Car Model",
-                        "e.g. Toyota Corolla", Icons.car_rental),
+                  _buildTextField(_modelController, "Car Model", "e.g. Toyota Corolla", Icons.car_rental),
+                  _buildTextField(_plateController, "License Plate", "e.g. BA 1 PA 1234", Icons.numbers),
+                  _buildTextField(_numController, "Contact Phone", "e.g. 98XXXXXXXX", Icons.phone), // FIX: Added field
+                  _buildTextField(_colorController, "Car Color", "e.g. White", Icons.color_lens),
 
-                    _buildTextField(_plateController, "License Plate",
-                        "e.g. BA 1 PA 1234", Icons.numbers),
+                  const SizedBox(height: 20),
 
-                    _buildTextField(_colorController, "Car Color",
-                        "e.g. White", Icons.color_lens),
+                  DropdownButtonFormField<String>(
+                    value: _fuelType,
+                    items: ['Petrol', 'Diesel', 'Electric', 'Hybrid']
+                        .map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
+                    onChanged: (val) => setState(() => _fuelType = val!),
+                    decoration: const InputDecoration(labelText: "Fuel Type", border: OutlineInputBorder()),
+                  ),
 
-                    const SizedBox(height: 20),
+                  const SizedBox(height: 20),
+                  _buildTextField(_priceController, "Price per km (Rs)", "e.g. 45", Icons.attach_money),
+                  _buildTextField(_distanceController, "Distance (km)", "e.g. 10", Icons.social_distance),
+                  _buildTextField(_fuelCapacityController, "Fuel Capacity (L)", "e.g. 40", Icons.local_gas_station),
 
-                    DropdownButtonFormField<String>(
-                      initialValue: _fuelType,
-                      items: ['Petrol', 'Diesel', 'Electric', 'Hybrid']
-                          .map((value) => DropdownMenuItem(
-                        value: value,
-                        child: Text(value),
-                      ))
-                          .toList(),
-                      onChanged: (val) => setState(() => _fuelType = val!),
-                      decoration: const InputDecoration(
-                        labelText: "Fuel Type",
-                        border: OutlineInputBorder(),
-                      ),
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity, height: 55,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                      onPressed: _isLoading ? null : () => _saveCarDetails(driverId),
+                      child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("SAVE VEHICLE DETAILS", style: TextStyle(color: Colors.white)),
                     ),
-
-                    const SizedBox(height: 20),
-
-                    _buildTextField(_priceController, "Price per km (Rs)",
-                        "e.g. 45", Icons.attach_money),
-
-                    _buildTextField(_distanceController, "Distance (km)",
-                        "e.g. 10", Icons.social_distance),
-
-                    _buildTextField(_fuelCapacityController,
-                        "Fuel Capacity (liters)", "e.g. 40",
-                        Icons.local_gas_station),
-
-                    const SizedBox(height: 10),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: _isLoading
-                            ? null
-                            : () => _saveCarDetails(driverId),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(
-                            color: Colors.white)
-                            : const Text(
-                          "SAVE VEHICLE DETAILS",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           );
@@ -248,22 +198,13 @@ class _CarManagementContentState extends State<CarManagementContent> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      String hint, IconData icon) {
+  Widget _buildTextField(TextEditingController controller, String label, String hint, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: TextFormField(
         controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          prefixIcon: Icon(icon),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        validator: (value) =>
-        value == null || value.isEmpty ? "Required field" : null,
+        decoration: InputDecoration(labelText: label, hintText: hint, prefixIcon: Icon(icon), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+        validator: (value) => value == null || value.isEmpty ? "Required field" : null,
       ),
     );
   }
@@ -271,36 +212,24 @@ class _CarManagementContentState extends State<CarManagementContent> {
   Future<String?> _uploadToCloudinary() async {
     const cloudName = "dvezp7njs";
     const uploadPreset = "sajilo_preset";
-
-    final uri = Uri.parse(
-        'https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+    final uri = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
 
     var request = http.MultipartRequest('POST', uri);
     request.fields['upload_preset'] = uploadPreset;
 
     if (kIsWeb) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'file',
-        _webImage!,
-        filename: 'upload.jpg',
-      ));
+      request.files.add(http.MultipartFile.fromBytes('file', _webImage!, filename: 'upload.jpg'));
     } else {
-      request.files.add(await http.MultipartFile.fromPath(
-        'file',
-        _mobileImage!.path,
-      ));
+      request.files.add(await http.MultipartFile.fromPath('file', _mobileImage!.path));
     }
 
     final response = await request.send();
     final resBody = await response.stream.bytesToString();
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(resBody);
-      return data['secure_url'];
-    } else {
-      debugPrint("Cloudinary error: $resBody");
-      return null;
+      return jsonDecode(resBody)['secure_url'];
     }
+    return null;
   }
 
   Future<void> _saveCarDetails(String driverId) async {
@@ -309,794 +238,56 @@ class _CarManagementContentState extends State<CarManagementContent> {
     setState(() => _isLoading = true);
 
     try {
+      // FIX: Access provider inside the method
+      final authProvider = Provider.of<AuthProviderMethod>(context, listen: false);
       String? finalImageUrl = _carImageUrl;
 
       if (_webImage != null || _mobileImage != null) {
         finalImageUrl = await _uploadToCloudinary();
-        if (finalImageUrl == null) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Image upload failed. Please try again."),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-          return;
-        }
       }
 
-      await FirebaseFirestore.instance
-          .collection('drivers')
-          .doc(driverId)
-          .set({
-        'carModel': _modelController.text.trim(),
+     /* await FirebaseFirestore.instance.collection('drivers').doc(driverId).set({
+        'carModel': _modelController.text,
+        'carNumber': _plateController.text.trim(),
+        'name': authProvider.user?.displayName ?? 'Unknown Driver', // FIX: Property name
+        'phone': _numController.text.trim(), // FIX: Now defined
+        'carImage': finalImageUrl,
         'plateNumber': _plateController.text.trim(),
         'carColor': _colorController.text.trim(),
         'fuelType': _fuelType,
-        'carImage': finalImageUrl,
+        'pricePerHour': double.tryParse(_priceController.text) ?? 0.0,
+        'distance': double.tryParse(_distanceController.text) ?? 0.0,
+        'fuelCapacity': double.tryParse(_fuelCapacityController.text) ?? 0.0,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));*/
+
+      await FirebaseFirestore.instance.collection('drivers').doc(driverId).set({
+        'model': _modelController.text, // FIXED: was 'carModel'
+        'carNumber': _plateController.text.trim(),
+        'driverName': authProvider.user?.displayName ?? 'Unknown Driver', // FIXED: was 'name'
+        'phone': _numController.text.trim(),
+        'image': finalImageUrl, // FIXED: was 'carImage'
+        'driverId': driverId,
+        'plateNumber': _plateController.text.trim(),
+        'carColor': _colorController.text.trim(),
+        'fuelType': _fuelType,
         'pricePerHour': double.tryParse(_priceController.text) ?? 0.0,
         'distance': double.tryParse(_distanceController.text) ?? 0.0,
         'fuelCapacity': double.tryParse(_fuelCapacityController.text) ?? 0.0,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Vehicle details saved successfully!"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vehicle details saved!"),
+            backgroundColor: Colors.green));
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error saving details: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"),
+          backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 }
-
-
-
-
-
-
-
-/*import 'dart:convert';
-import 'dart:io' show File;
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sajilo_ride/auth/auth_provider.dart';
-
-class CarManagementContent extends StatefulWidget {
-  const CarManagementContent({super.key});
-
-  @override
-  State<CarManagementContent> createState() => _CarManagementContentState();
-}
-
-class _CarManagementContentState extends State<CarManagementContent> {
-  final _formKey = GlobalKey<FormState>();
-
-  final TextEditingController _modelController = TextEditingController();
-  final TextEditingController _plateController = TextEditingController();
-  final TextEditingController _colorController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _distanceController = TextEditingController();
-  final TextEditingController _fuelCapacityController = TextEditingController();
-
-  String _fuelType = 'Petrol';
-  String? _carImageUrl;
-
-  Uint8List? _webImage;
-  File? _mobileImage;
-
-  bool _isLoading = false;
-  bool _isDataLoaded = false;
-
-  final ImagePicker _picker = ImagePicker();
-
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 50,
-    );
-
-    if (pickedFile != null) {
-      if (kIsWeb) {
-        final bytes = await pickedFile.readAsBytes();
-        setState(() => _webImage = bytes);
-      } else {
-        setState(() => _mobileImage = File(pickedFile.path));
-      }
-    }
-  }
-
-  void _loadData(Map<String, dynamic> data) {
-    if (_isDataLoaded) return;
-
-    _modelController.text = data['carModel'] ?? '';
-    _plateController.text = data['plateNumber'] ?? '';
-    _colorController.text = data['carColor'] ?? '';
-    _priceController.text =
-        (data['pricePerHour'] ?? '').toString();
-    _distanceController.text =
-        (data['distance'] ?? '').toString();
-    _fuelCapacityController.text =
-        (data['fuelCapacity'] ?? '').toString();
-
-    _fuelType = data['fuelType'] ?? 'Petrol';
-    _carImageUrl = data['carImage'];
-
-    _isDataLoaded = true;
-  }
-
-  @override
-  void dispose() {
-    _modelController.dispose();
-    _plateController.dispose();
-    _colorController.dispose();
-    _priceController.dispose();
-    _distanceController.dispose();
-    _fuelCapacityController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProviderMethod>(context);
-    final driverId = authProvider.user?.uid;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Car Management"),
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
-      ),
-
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('drivers')
-            .doc(driverId)
-            .snapshots(),
-        builder: (context, snapshot) {
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasData && snapshot.data!.exists) {
-            final data = snapshot.data!.data() as Map<String, dynamic>;
-            _loadData(data);
-          }
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-
-                    const Text(
-                      "Car Photo",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 200,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(color: Colors.orange),
-                          image: _webImage != null
-                              ? DecorationImage(
-                            image: MemoryImage(_webImage!),
-                            fit: BoxFit.cover,
-                          )
-                              : (_mobileImage != null
-                              ? DecorationImage(
-                            image: FileImage(_mobileImage!),
-                            fit: BoxFit.cover,
-                          )
-                              : (_carImageUrl != null
-                              ? DecorationImage(
-                            image:
-                            NetworkImage(_carImageUrl!),
-                            fit: BoxFit.cover,
-                          )
-                              : null)),
-                        ),
-                        child: (_webImage == null &&
-                            _mobileImage == null &&
-                            _carImageUrl == null)
-                            ? const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add_a_photo,
-                                size: 50, color: Colors.orange),
-                            Text("Upload Car Image"),
-                          ],
-                        )
-                            : null,
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    _buildTextField(_modelController, "Car Model",
-                        "e.g. Toyota Corolla", Icons.car_rental),
-
-                    _buildTextField(_plateController, "License Plate",
-                        "e.g. BA 1 PA 1234", Icons.numbers),
-
-                    _buildTextField(_colorController, "Car Color",
-                        "e.g. White", Icons.color_lens),
-
-                    const SizedBox(height: 20),
-
-                    DropdownButtonFormField<String>(
-                      initialValue: _fuelType,
-                      items: ['Petrol', 'Diesel', 'Electric', 'Hybrid']
-                          .map((value) => DropdownMenuItem(
-                        value: value,
-                        child: Text(value),
-                      ))
-                          .toList(),
-                      onChanged: (val) {
-                        setState(() => _fuelType = val!);
-                      },
-                      decoration: const InputDecoration(
-                        labelText: "Fuel Type",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _buildTextField(_priceController, "Price per Hour",
-                        "e.g. 500", Icons.attach_money),
-
-                    _buildTextField(_distanceController, "Distance (km)",
-                        "e.g. 10", Icons.social_distance),
-
-                    _buildTextField(
-                        _fuelCapacityController,
-                        "Fuel Capacity (liters)",
-                        "e.g. 40",
-                        Icons.local_gas_station),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: _isLoading
-                            ? null
-                            : () => _saveCarDetails(driverId!),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text(
-                          "SAVE VEHICLE DETAILS",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label,
-      String hint, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          prefixIcon: Icon(icon),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        validator: (value) =>
-        value == null || value.isEmpty ? "Required field" : null,
-      ),
-    );
-  }
-
-  Future<String?> _uploadToCloudinary() async {
-    const cloudName = "dvezp7njs";
-    const uploadPreset = "sajilo_preset";
-
-    final uri = Uri.parse(
-        'https://api.cloudinary.com/v1_1/$cloudName/image/upload');
-
-    var request = http.MultipartRequest('POST', uri);
-    request.fields['upload_preset'] = uploadPreset;
-
-    if (kIsWeb) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'file',
-        _webImage!,
-        filename: 'upload.jpg',
-      ));
-    } else {
-      request.files.add(await http.MultipartFile.fromPath(
-        'file',
-        _mobileImage!.path,
-      ));
-    }
-
-    final response = await request.send();
-    final resBody = await response.stream.bytesToString();
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(resBody);
-      return data['secure_url'];
-    } else {
-      debugPrint(resBody);
-      return null;
-    }
-  }
-
-  Future<void> _saveCarDetails(String driverId) async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      String? finalImageUrl = _carImageUrl;
-
-      if (_webImage != null || _mobileImage != null) {
-        finalImageUrl = await _uploadToCloudinary();
-        if (finalImageUrl == null) {
-          throw Exception("Image upload failed");
-        }
-      }
-
-      await FirebaseFirestore.instance
-          .collection('drivers')
-          .doc(driverId)
-          .set({
-        'carModel': _modelController.text,
-        'plateNumber': _plateController.text,
-        'carColor': _colorController.text,
-        'fuelType': _fuelType,
-        'carImage': finalImageUrl,
-        'pricePerHour':
-        double.tryParse(_priceController.text) ?? 0.0,
-        'distance':
-        double.tryParse(_distanceController.text) ?? 0.0,
-        'fuelCapacity':
-        double.tryParse(_fuelCapacityController.text) ?? 0.0,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Details updated!"),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      debugPrint("Error: $e");
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-}
-*/
-
-
-
-
-
-/*import 'dart:convert';
-import 'dart:io' show File;
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sajilo_ride/auth/auth_provider.dart';
-
-class CarManagementContent extends StatefulWidget {
-  const CarManagementContent({super.key});
-
-  @override
-  State<CarManagementContent> createState() => _CarManagementContentState();
-}
-
-class _CarManagementContentState extends State<CarManagementContent> {
-  final _formKey = GlobalKey<FormState>();
-
-  final TextEditingController _modelController = TextEditingController();
-  final TextEditingController _plateController = TextEditingController();
-  final TextEditingController _colorController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _distanceController = TextEditingController();
-  final TextEditingController _fuelCapacityController = TextEditingController();
-
-  String _fuelType = 'Petrol';
-  String? _carImageUrl;
-
-  // WEB + MOBILE SUPPORT
-  Uint8List? _webImage;
-  File? _mobileImage;
-
-  bool _isLoading = false;
-
-  final ImagePicker _picker = ImagePicker();
-
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 50,
-    );
-
-    if (pickedFile != null) {
-      if (kIsWeb) {
-        final bytes = await pickedFile.readAsBytes();
-        setState(() {
-          _webImage = bytes;
-        });
-      } else {
-        setState(() {
-          _mobileImage = File(pickedFile.path);
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProviderMethod>(context);
-    final driverId = authProvider.user?.uid;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Car Management"),
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
-      ),
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('drivers')
-            .doc(driverId)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasData && snapshot.data!.exists) {
-            var data = snapshot.data!.data() as Map<String, dynamic>;
-
-            if (_modelController.text.isEmpty) {
-              _modelController.text = data['carModel'] ?? '';
-            }
-            if (_plateController.text.isEmpty) {
-              _plateController.text = data['plateNumber'] ?? '';
-            }
-            if (_colorController.text.isEmpty) {
-              _colorController.text = data['carColor'] ?? '';
-            }
-
-            _fuelType = data['fuelType'] ?? 'Petrol';
-            _carImageUrl = data['carImage'];
-          }
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text("Car Photo",
-                        style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 200,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(
-                              color: Colors.orange.withValues(alpha: 0.5)),
-                          image: _webImage != null
-                              ? DecorationImage(
-                              image: MemoryImage(_webImage!),
-                              fit: BoxFit.cover)
-                              : (_mobileImage != null
-                              ? DecorationImage(
-                              image: FileImage(_mobileImage!),
-                              fit: BoxFit.cover)
-                              : (_carImageUrl != null
-                              ? DecorationImage(
-                              image: NetworkImage(_carImageUrl!),
-                              fit: BoxFit.cover)
-                              : null)),
-                        ),
-                        child: (_webImage == null &&
-                            _mobileImage == null &&
-                            _carImageUrl == null)
-                            ? const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add_a_photo,
-                                size: 50, color: Colors.orange),
-                            Text("Upload Car Image",
-                                style: TextStyle(color: Colors.orange)),
-                          ],
-                        )
-                            : null,
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildTextField(_modelController, "Car Model",
-                          "e.g. Toyota Corolla", Icons.car_rental),
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildTextField(_plateController, "License Plate",
-                          "e.g. BA 1 PA 1234", Icons.numbers),
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildTextField(_colorController, "Car Color",
-                          "e.g. White", Icons.color_lens),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    const Text("Fuel Type",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: _fuelType,
-                        items: ['Petrol', 'Diesel', 'Electric', 'Hybrid']
-                            .map((value) => DropdownMenuItem(
-                          value: value,
-                          child: Text(value),
-                        ))
-                            .toList(),
-                        onChanged: (newValue) {
-                          setState(() => _fuelType = newValue!);
-                        },
-                      ),
-                    ),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildTextField(
-                        _priceController,
-                        "Price per Hour",
-                        "e.g. 500",
-                        Icons.attach_money,
-                      ),
-                    ),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildTextField(
-                        _distanceController,
-                        "Distance (km)",
-                        "e.g. 10",
-                        Icons.social_distance,
-                      ),
-                    ),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildTextField(
-                        _fuelCapacityController,
-                        "Fuel Capacity (liters)",
-                        "e.g. 40",
-                        Icons.local_gas_station,
-                      ),
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        onPressed:
-                        _isLoading ? null : () => _saveCarDetails(driverId!),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(
-                            color: Colors.white)
-                            : const Text(
-                          "SAVE VEHICLE DETAILS",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label,
-      String hint, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          prefixIcon: Icon(icon),
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12)),
-        ),
-        validator: (value) =>
-        value == null || value.isEmpty ? "Required field" : null,
-      ),
-    );
-  }
-
-  // CLOUDINARY UPLOAD (WEB + MOBILE)
-  Future<String?> _uploadToCloudinary() async {
-    const cloudName = "dvezp7njs";
-    const uploadPreset = "sajilo_preset";
-
-    final uri =
-    Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
-
-    try {
-      var request = http.MultipartRequest('POST', uri);
-      request.fields['upload_preset'] = uploadPreset;
-
-      if (kIsWeb) {
-        request.files.add(http.MultipartFile.fromBytes(
-          'file',
-          _webImage!,
-          filename: 'upload.jpg',
-        ));
-      } else {
-        request.files.add(await http.MultipartFile.fromPath(
-          'file',
-          _mobileImage!.path,
-        ));
-      }
-
-      final response = await request.send();
-      final resBody = await response.stream.bytesToString();
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(resBody);
-        return data['secure_url'];
-      } else {
-        debugPrint("Cloudinary error: $resBody");
-        return null;
-      }
-    } catch (e) {
-      debugPrint("Upload error: $e");
-      return null;
-    }
-  }
-
-  Future<void> _saveCarDetails(String driverId) async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      String? finalImageUrl = _carImageUrl;
-
-      if (_webImage != null || _mobileImage != null) {
-        finalImageUrl = await _uploadToCloudinary();
-
-        if (finalImageUrl == null) {
-          throw Exception("Image upload failed");
-        }
-      }
-
-      await FirebaseFirestore.instance
-          .collection('drivers')
-          .doc(driverId)
-          .set({
-        'carModel': _modelController.text,
-        'plateNumber': _plateController.text,
-        'carColor': _colorController.text,
-        'fuelType': _fuelType,
-        'carImage': finalImageUrl,
-        'pricePerHour':
-        double.tryParse(_priceController.text) ?? 0.0,
-        'distance':
-        double.tryParse(_distanceController.text) ?? 0.0,
-        'fuelCapacity':
-        double.tryParse(_fuelCapacityController.text) ?? 0.0,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Details updated!"),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      debugPrint("Error: $e");
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-}
-
-*/

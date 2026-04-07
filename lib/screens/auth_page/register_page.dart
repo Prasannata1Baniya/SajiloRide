@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl_phone_field/country_picker_dialog.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/utils/input_decoration.dart';
@@ -6,7 +8,6 @@ import 'package:sajilo_ride/utils/text_styles.dart';
 import 'package:image_picker/image_picker.dart';
 import 'login_page.dart';
 import 'dart:ui';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -21,6 +22,10 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
+  final _numController =TextEditingController();
+
+  FocusNode focusNode = FocusNode();
+  String _phoneNumber="";
 
   //final List<String> roles = ['Passenger', 'Driver'];
   final List<String> roles = ['passenger', 'driver'];
@@ -39,6 +44,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _phoneNumber;
     super.dispose();
   }
 
@@ -82,6 +88,7 @@ class _RegisterPageState extends State<RegisterPage> {
       _nameController.text.trim(),
       _emailController.text.trim(),
       _passwordController.text.trim(),
+      _numController.text,
       selectedRole!,
     );
 
@@ -215,6 +222,36 @@ class _RegisterPageState extends State<RegisterPage> {
 
                                 const SizedBox(height: 16),
 
+                                //Number
+                                IntlPhoneField(
+                                  validator: (value)=>(value==null ||
+                                      value.number.length<10)
+                                  ? 'Enter 10 digit number'
+                                  : null,
+                                  controller: _numController,
+                                  style: const TextStyle(color: Colors.white),
+                                  dropdownTextStyle: const TextStyle(color: Colors.white),
+                                  cursorColor: Colors.orangeAccent,
+                                  decoration: inputDecorate.buildInputDecoration("Phone Number").copyWith(
+                                    counterStyle: const TextStyle(color: Colors.white60),
+                                  ),
+                                  initialCountryCode: 'NP',
+                                  onChanged: (phone) {
+                                    _phoneNumber = phone.completeNumber;
+                                  },
+                                  // This makes the country picker popup look modern too
+                                  pickerDialogStyle: PickerDialogStyle(
+                                    backgroundColor: Colors.grey[900],
+                                    countryCodeStyle: const TextStyle(color: Colors.white),
+                                    countryNameStyle: const TextStyle(color: Colors.white),
+                                    searchFieldInputDecoration: InputDecoration(
+                                      labelText: 'Search Country',
+                                      labelStyle: const TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 16),
                                 DropdownButtonFormField<String>(
                                   initialValue: selectedRole,
                                   decoration: inputDecorate.buildInputDecoration("Select Role"),

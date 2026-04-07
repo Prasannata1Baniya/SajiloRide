@@ -59,13 +59,14 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     final double width = MediaQuery.of(context).size.width;
     final bool isDesktop = width > 650;
 
-    final List<CarModel> previewCars = [
-      CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45,
+    final List<CarCard> previewCars = [
+    //  CarCard(car: car, pickupLocation: pickupLocation)
+     /* CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45,
           fuelCapacity: 50, image: "assets/images/car1.jpg", driverId: '1'),
       CarModel(model: "Tesla Model X", distance: 400, pricePerHour: 55,
           fuelCapacity: 100, image: "assets/images/car3.jpg", driverId: '2'),
       CarModel(model: "Land Cruiser", distance: 500, pricePerHour: 60,
-          fuelCapacity: 80, image: "assets/images/car2.jpg", driverId: '3'),
+          fuelCapacity: 80, image: "assets/images/car2.jpg", driverId: '3'),*/
     ];
 
     return Scaffold(
@@ -167,9 +168,10 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                         ),
                         itemBuilder: (context, index) {
                           return AbsorbPointer(
-                            child: CarCard(car: previewCars[index],
-                                pickupLocation: const LatLng(27.7, 85.3),
-                              buttonColor: Colors.black,),
+                            child: Image.asset(''),
+                          //  child: CarCard(car: previewCars[index],
+                               // pickupLocation: const LatLng(27.7, 85.3),
+                              //buttonColor: Colors.black,),
                           );
                         },
                       ),

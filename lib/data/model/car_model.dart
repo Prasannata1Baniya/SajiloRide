@@ -5,9 +5,13 @@ class CarModel{
   final double fuelCapacity;
   final String image;
   final String driverId;
+  final String carNumber;
+  final String driverName;
+  final String phone;
 
   CarModel({required this.model, required this.distance, required this.pricePerHour,
-  required this.fuelCapacity,required this.image, required this.driverId});
+  required this.fuelCapacity,required this.image, required this.driverId,
+    required this.carNumber, required this.driverName, required this.phone});
 
   factory CarModel.fromMap(Map<String, dynamic> map) => CarModel(
     model: map['model'] ?? '',
@@ -16,6 +20,9 @@ class CarModel{
     fuelCapacity: (map['fuelCapacity'] ?? 0).toDouble(),
     image: map['image'] ?? '',
     driverId: map['driverId'] ?? '',
+    carNumber: map['carNumber']?? '',
+    driverName: map['driverName']?? '',
+    phone: map['phone'] ?? '',
   );
 
   Map<String, dynamic> toMap() => {
@@ -25,6 +32,9 @@ class CarModel{
     'fuelCapacity': fuelCapacity,
     'image': image,
     'driverId': driverId,
+    'carNumber': carNumber,
+    'driverName':driverName,
+    'phone': phone,
   };
 
 }
