@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sajilo_ride/screens/auth_page/login_page.dart';
 import 'package:sajilo_ride/utils/text_styles.dart';
-import 'package:sajilo_ride/widgets/car_card.dart';
-import 'package:latlong2/latlong.dart';
-import '../../data/model/car_model.dart';
 
 class OnBoardingPage extends StatefulWidget {
   const OnBoardingPage({super.key});
@@ -59,7 +56,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     final double width = MediaQuery.of(context).size.width;
     final bool isDesktop = width > 650;
 
-    final List<CarCard> previewCars = [
+   /* final List<CarCard> previewCars = [
     //  CarCard(car: car, pickupLocation: pickupLocation)
      /* CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45,
           fuelCapacity: 50, image: "assets/images/car1.jpg", driverId: '1'),
@@ -67,10 +64,10 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
           fuelCapacity: 100, image: "assets/images/car3.jpg", driverId: '2'),
       CarModel(model: "Land Cruiser", distance: 500, pricePerHour: 60,
           fuelCapacity: 80, image: "assets/images/car2.jpg", driverId: '3'),*/
-    ];
+    ];*/
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      //backgroundColor: Colors.white,
       body: Scrollbar(
         thumbVisibility: true,
         child: SingleChildScrollView(
@@ -130,57 +127,9 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                   ),
                 ),
               ),
+
         
-              // 2. CAR PREVIEW SECTION
-              Container(
-                key: _carKey,
-                width: double.infinity,
-                //color: Colors.orangeAccent,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.orangeAccent,
-                      Colors.deepOrange,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 20),
-                  child: Column(
-                    children: [
-                      const Text("Explore Our Fleet", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,
-                          color: Colors.white)),
-                      const Text("Login to book these premium vehicles", style: TextStyle(color: Colors.white70)),
-                      const SizedBox(height: 40),
-        
-                      // Grid of cars
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: previewCars.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: isDesktop ? 3 : 1,
-                          childAspectRatio: isDesktop ? 0.9 : 0.8,
-                          mainAxisSpacing: 25,
-                          crossAxisSpacing: 25,
-                        ),
-                        itemBuilder: (context, index) {
-                          return AbsorbPointer(
-                            child: Image.asset(''),
-                          //  child: CarCard(car: previewCars[index],
-                               // pickupLocation: const LatLng(27.7, 85.3),
-                              //buttonColor: Colors.black,),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-        
-              // --- 3. FOOTER SECTION ---
+              // --- 2. FOOTER SECTION ---
               Container(
                 key: _footerKey,
                 width: double.infinity,

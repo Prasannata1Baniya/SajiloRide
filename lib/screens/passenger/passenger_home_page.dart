@@ -43,32 +43,16 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   String _dropoffAddress = "Select Drop-off Point";
   bool isSelectingPickup = true;
 
-
+  List<CarModel> liveCars = [];
 
   // Fallback Data
   final List<CarModel> carList = [
-    CarModel(
-      model: "Sajilo Moto",
-      distance: 0,
-      pricePerHour: 20,
-      fuelCapacity: 0,
-      image: "assets/images/car1.jpg",
-      driverId: 'demo1',
-      carNumber: 'BA 1 PA 1234',
-      driverName: 'Sajilo Pilot',
-      phone: '9800000000',
-    ),
-    CarModel(
-      model: "Sajilo Car",
-      distance: 0,
-      pricePerHour: 50,
-      fuelCapacity: 0,
-      image: "assets/images/car2.jpg",
-      driverId: 'demo2',
-      carNumber: 'BA 2 PA 5678',
-      driverName: 'Sajilo Driver',
-      phone: '9811111111',
-    ),
+    CarModel(model: 'Sajilo Moto', carNumber: 'BA 1 PA 1234',
+        image:  "assets/images/car1.jpg", driverId: 'demo1',
+        driverName: 'Sajilo Pilot',  phone: '9800000000',
+        vehicleType: 'Sajilo Moto', pricePerKm: 0,
+        rating: 5, isOnline: true,
+        latitude: 2.3, longitude: 23)
   ];
   /*final List<CarModel> carList = [
     CarModel(model: "Sajilo Moto", distance: 0, pricePerHour: 20,
@@ -150,7 +134,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   Future<void> _getAddress(LatLng position, bool isPickup) async {
     try {
       final url = Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.latitude}&lon=${position.longitude}');
-      final response = await http.get(url, headers: {'User-Agent': 'sajilo_ride'});
+      final response = await http.get(url, headers: {'User-Agent': 'com.prasannata.sajilo_ride'});
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
@@ -178,7 +162,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         setState(() {
           routePoints = coords.map<LatLng>((c) => LatLng(c[1], c[0])).toList();
           distance = routes[0]['distance'] / 1000.0;
-          if (selectedCar != null) fare = distance * selectedCar!.pricePerHour;
+          if (selectedCar != null) fare = distance * selectedCar!.pricePerKm;
         });
       }
     } catch (e) { debugPrint("Route error: $e"); }
@@ -322,6 +306,8 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   Widget build(BuildContext context) {
     bool isWide = MediaQuery.of(context).size.width > 900;
     return Scaffold(
+      extendBody: false,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           _buildMap(),
@@ -346,11 +332,41 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         ),
         if (routePoints.isNotEmpty) PolylineLayer(
             polylines: [Polyline(points: routePoints, strokeWidth: 5, color: Colors.blueAccent)]),
-        MarkerLayer(markers: [
+
+        // Inside _buildMap()
+        MarkerLayer(
+          markers: [
+            // 1. Current Pickup Marker
+            if (pickupLocation != null)
+              Marker(point: pickupLocation!, child: const Icon(Icons.my_location, color: Colors.green, size: 30)),
+
+            // 2. Drop-off Marker
+            if (dropOffLocation != null)
+              Marker(point: dropOffLocation!, child: const Icon(Icons.location_on, color: Colors.red, size: 40)),
+
+            // 3. LIVE DRIVER MARKERS
+            ...liveCars.map((driver) => Marker(
+              point: LatLng(driver.latitude, driver.longitude),
+              width: 40,
+              height: 40,
+              child: GestureDetector(
+                onTap: () => setState(() => selectedCar = driver),
+                child: Image.asset(
+                  driver.model.contains("Moto")
+                      ? "assets/images/bike_icon.png"
+                      : "assets/images/car_icon.png",
+                  width: 35,
+                ),
+              ),
+            )).toList(),
+          ],
+        ),
+        /*MarkerLayer(markers: [
           if (pickupLocation != null) Marker(point: pickupLocation!,
               child: const Icon(Icons.my_location, color: Colors.green, size: 30)),
-          if (dropOffLocation != null) Marker(point: dropOffLocation!, child: const Icon(Icons.location_on, color: Colors.red, size: 40)),
-        ]),
+          if (dropOffLocation != null)
+            Marker(point: dropOffLocation!, child: const Icon(Icons.location_on, color: Colors.red, size: 40)),
+        ]),*/
       ],
     );
   }
@@ -437,7 +453,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     );
   }
 
-  Widget _buildRideSelector() {
+  /*Widget _buildRideSelector() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('drivers').snapshots(),
       builder: (context, snapshot) {
@@ -484,10 +500,12 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => CarDriverDetailPage(car: all[index]),
+                    builder: (_) => CarDriverDetailPage(car:
+                    //all[index]
+                      selectedCar!
+                    ),
                   ),
                 );
-
                  if (!context.mounted) return;
                 //  Only when user confirms ride
                 if (result == true) {
@@ -553,6 +571,104 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                   color: isSel ? Colors.orange : Colors.transparent,
                   width: 2,
                 ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }*/
+
+
+
+  // 1. Fixed StreamBuilder Logic
+  Widget _buildRideSelector() {
+    return StreamBuilder<QuerySnapshot>(
+      // Querying 'users' collection for drivers to keep DB unified
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: 'driver')
+          .where('isOnline',isEqualTo: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+          liveCars = snapshot.data!.docs.map((doc) {
+            // Get the data map from the document
+            final d = doc.data() as Map<String, dynamic>;
+            // Pass the map and the document ID to your factory constructor
+            return CarModel.fromMap(d, doc.id);
+          }).toList();
+        }
+
+        /*if (snapshot.hasData) {
+          liveCars = snapshot.data!.docs.map((doc) {
+            var d = doc.data() as Map<String, dynamic>;
+            return CarModel(model: model,
+                carNumber: carNumber,
+                image: image,
+                driverId: driverId,
+                driverName: driverName,
+                phone: phone,
+                vehicleType: vehicleType,
+                pricePerKm: 0,
+                rating: rating,
+                isOnline: isOnline,
+                latitude: latitude,
+                longitude: longitude)
+          }).toList();
+        }*/
+
+        final all = [...liveCars, ...carList];
+
+        return ListView.separated(
+          itemCount: all.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final currentCar = all[index];
+            bool isSel = selectedCar?.driverId == currentCar.driverId;
+
+            return ListTile(
+              onTap: () async {
+                // FIX: Pass the tapped car, not the currently selected one!
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CarDriverDetailPage(car: currentCar),
+                  ),
+                );
+
+                if (result == true && context.mounted) {
+                  setState(() {
+                    selectedCar = currentCar;
+                    // Fare logic: Distance * Rate
+                    fare = distance > 0 ? (distance * currentCar.pricePerKm) : 0;
+                  });
+                }
+              },
+              leading: CircleAvatar(
+                radius: 25,
+                backgroundColor: Colors.grey[200],
+                backgroundImage: currentCar.image.startsWith('http')
+                    ? NetworkImage(currentCar.image)
+                    : AssetImage(currentCar.image) as ImageProvider,
+              ),
+              title: Text(currentCar.model, style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: const Text("⚡ 4 min away • 4 Seats"),
+              trailing: Text(
+                distance > 0
+                    ? "Rs ${(distance * currentCar.pricePerKm).toStringAsFixed(0)}"
+                    : "Select Destination",
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+              ),
+              selected: isSel,
+              selectedTileColor: Colors.orange.withValues(alpha: 0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: isSel ? Colors.orange : Colors.transparent),
               ),
             );
           },
@@ -667,3 +783,128 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   }
 }
 
+/*Widget _buildRideSelector() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('drivers').snapshots(),
+      builder: (context, snapshot) {
+        List<CarModel> liveCars = [];
+        if (snapshot.hasData) {
+          // Change this block in _buildRideSelector
+          liveCars = snapshot.data!.docs.map((doc) {
+            var d = doc.data() as Map<String, dynamic>;
+            return CarModel(
+              model: d['model'] ?? "Car",            // Changed from 'carModel'
+              distance: 0,
+              pricePerHour: (d['pricePerHour'] ?? 45).toDouble(),
+              fuelCapacity: (d['fuelCapacity'] ?? 0).toDouble(),
+              image: d['image'] ?? "",               // Changed from 'carImage'
+              driverId: doc.id,
+              carNumber: d['carNumber'] ?? 'N/A',
+              driverName: d['driverName'] ?? 'Unknown Driver', // Changed from 'name'
+              phone: d['phone'] ?? 'No Phone',
+            );
+          }).toList();
+         /* liveCars = snapshot.data!.docs.map((doc) {
+            var d = doc.data() as Map<String, dynamic>;
+            return CarModel(
+                     model: d['carModel'] ?? "Car",
+                         distance: 0,
+                     pricePerHour: (d['pricePerHour'] ?? 45).toDouble(),
+                      fuelCapacity: (d['fuelCapacity'] ?? 0).toDouble(),
+                        image: d['carImage'] ?? "",
+                     driverId: doc.id,
+                       carNumber: d['carNumber'] ?? 'N/A',
+                   driverName: d['name'] ?? 'Unknown Driver',
+                 phone: d['phone'] ?? 'No Phone',
+            );
+          }).toList();*/
+        }
+        final all = [...liveCars, ...carList];
+        return ListView.separated(
+          itemCount: all.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            bool isSel = selectedCar?.driverId == all[index].driverId;
+            return ListTile(
+              onTap: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CarDriverDetailPage(car:
+                    //all[index]
+                      selectedCar!
+                    ),
+                  ),
+                );
+                 if (!context.mounted) return;
+                //  Only when user confirms ride
+                if (result == true) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Ride confirmed with ${all[index].driverName}"),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                  setState(() {
+                    selectedCar = all[index];
+                    fare = distance > 0
+                        ? distance * all[index].pricePerHour
+                        : all[index].pricePerHour;
+                  });
+                }
+              },
+
+             /*leading: CircleAvatar(
+                radius: 25,
+                backgroundImage: all[index].image.startsWith('http')
+                    ? NetworkImage(all[index].image)
+                    : AssetImage(all[index].image) as ImageProvider,
+              ),*/
+
+              leading: CircleAvatar(
+                radius: 25,
+                backgroundColor: Colors.grey[200],
+                backgroundImage: all[index].image.isNotEmpty
+                    ? (all[index].image.startsWith('http')
+                    ? NetworkImage(all[index].image)
+                    : AssetImage(all[index].image) as ImageProvider)
+                    : const AssetImage('assets/images/car1.jpg'), // Add a default asset
+              ),
+
+              title: Text(
+                all[index].model,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+
+              subtitle: const Text("⚡ Close by • 4 Seats"),
+
+              /*trailing: Text(
+                "Rs ${(distance > 0
+                    ? distance * all[index].pricePerHour
+                    : all[index].pricePerHour).toStringAsFixed(0)}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),*/
+              trailing: Text(
+                distance > 0
+                    ? "Rs ${(distance * all[index].pricePerHour).toStringAsFixed(0)}"
+                    : "Calculating...",
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+              ),
+
+              selected: isSel,
+              selectedTileColor: Colors.orange.withValues(alpha: 0.15),
+
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: isSel ? Colors.orange : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }*/

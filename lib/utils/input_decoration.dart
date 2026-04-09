@@ -4,15 +4,17 @@ class InputDecorate {  InputDecoration buildInputDecoration(String label, {Widge
   return InputDecoration(
     labelText: label,
     suffixIcon: suffixIcon,
-    labelStyle: const TextStyle(color: Colors.white70, fontSize: 14),
+    labelStyle: const TextStyle(color: Colors.black, fontSize: 14),
     floatingLabelStyle: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold),
     filled: true,
     //fillColor: Colors.grey[200],
-    fillColor: Colors.white.withValues(alpha: 0.3),
+    //fillColor: Colors.white.withValues(alpha: 0.7),
+    fillColor: Colors.white,
     contentPadding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 16.0),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(15),
-      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      //borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      borderSide: BorderSide(color: Colors.black),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(15),

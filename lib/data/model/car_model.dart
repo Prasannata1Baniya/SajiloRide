@@ -1,40 +1,63 @@
-class CarModel{
+class CarModel {
+  final String? id;
   final String model;
-  final double distance;
-  final double pricePerHour;
-  final double fuelCapacity;
+  final String carNumber;
   final String image;
   final String driverId;
-  final String carNumber;
   final String driverName;
   final String phone;
+  final String vehicleType;
+  final double pricePerKm;
+  final double rating;
+  final bool isOnline;
+  final double latitude;
+  final double longitude;
 
-  CarModel({required this.model, required this.distance, required this.pricePerHour,
-  required this.fuelCapacity,required this.image, required this.driverId,
-    required this.carNumber, required this.driverName, required this.phone});
+  CarModel({
+    this.id,
+    required this.model,
+    required this.carNumber,
+    required this.image,
+    required this.driverId,
+    required this.driverName,
+    required this.phone,
+    required this.vehicleType,
+    required this.pricePerKm,
+    required this.rating,
+    required this.isOnline,
+    required this.latitude,
+    required this.longitude,
+  });
 
-  factory CarModel.fromMap(Map<String, dynamic> map) => CarModel(
-    model: map['model'] ?? '',
-    distance: (map['distance'] ?? 0).toDouble(),
-    pricePerHour: (map['pricePerHour'] ?? 0).toDouble(),
-    fuelCapacity: (map['fuelCapacity'] ?? 0).toDouble(),
+  factory CarModel.fromMap(Map<String, dynamic> map, String docId) => CarModel(
+    id: docId,
+    model: map['model'] ?? 'Unknown',
+    carNumber: map['carNumber'] ?? '',
     image: map['image'] ?? '',
     driverId: map['driverId'] ?? '',
-    carNumber: map['carNumber']?? '',
-    driverName: map['driverName']?? '',
+    driverName: map['driverName'] ?? 'Driver',
     phone: map['phone'] ?? '',
+    vehicleType: map['vehicleType'] ?? 'Standard',
+    // Safe conversion: handles both String or double coming from DB
+    pricePerKm: double.tryParse(map['pricePerKm']?.toString() ?? '0.0') ?? 0.0,
+    rating: (map['rating'] as num? ?? 0.0).toDouble(),
+    isOnline: map['isOnline'] ?? false,
+    latitude: (map['latitude'] as num? ?? 0.0).toDouble(),
+    longitude: (map['longitude'] as num? ?? 0.0).toDouble(),
   );
 
   Map<String, dynamic> toMap() => {
     'model': model,
-    'distance': distance,
-    'pricePerHour': pricePerHour,
-    'fuelCapacity': fuelCapacity,
+    'carNumber': carNumber,
     'image': image,
     'driverId': driverId,
-    'carNumber': carNumber,
-    'driverName':driverName,
+    'driverName': driverName,
     'phone': phone,
+    'vehicleType': vehicleType,
+    'pricePerKm': pricePerKm,
+    'rating': rating,
+    'isOnline': isOnline,
+    'latitude': latitude,
+    'longitude': longitude,
   };
-
 }

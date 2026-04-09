@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sajilo_ride/screens/driver/active_ride.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DriverMapPage extends StatelessWidget {
   final LatLng pickupLocation;
@@ -14,6 +15,14 @@ class DriverMapPage extends StatelessWidget {
     required this.bookingId,
     required this.bookingData,
   });
+
+
+  void _launchNavigation() async {
+    final url = 'google.navigation:q=${pickupLocation.latitude},${pickupLocation.longitude}';
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

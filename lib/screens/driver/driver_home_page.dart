@@ -90,14 +90,18 @@ class DriverHomeContent extends StatelessWidget {
                     ],
                   ),
                 ),
-                Text("\$${data['price']}",
+                /*Text("\$${data['price']}",
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orange)),*/
+                // Inside _buildRequestCard
+                Text("Rs ${data['fare'] ?? '0'}", // Use 'fare' to match PassengerHomeContent
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orange)),
+
               ],
             ),
 
             const Divider(height: 30),
 
-            Row(
+            /*Row(
               children: [
                 const Icon(Icons.location_on, color: Colors.red),
                 const SizedBox(width: 10),
@@ -116,6 +120,33 @@ class DriverHomeContent extends StatelessWidget {
                   label: const Text("VIEW MAP"),
                 )
               ],
+            ),*/
+            Row(
+              children: [
+                const Icon(Icons.location_on, color: Colors.red),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    "Pickup: ${data['pickupAddress'] ?? 'Fetching...'}",
+                    style: const TextStyle(color: Colors.black54, fontSize: 13),
+                  ),),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DriverMapPage(
+                          pickupLocation: LatLng(
+                            (data['pickupLat'] as num).toDouble(),
+                            (data['pickupLng'] as num).toDouble(),
+                          ),
+                          bookingId: docId,
+                          bookingData: data,
+                        ),),);
+                  },
+                  icon: const Icon(Icons.map, size: 18),
+                  label: const Text("VIEW MAP"),
+                ),],
             ),
 
             const SizedBox(height: 10),

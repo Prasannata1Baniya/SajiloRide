@@ -18,9 +18,9 @@ class PassengerProfileContent extends StatelessWidget {
       appBar: AppBar(
         title: const Text("My Profile", style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
         elevation: 0,
-        foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
         child: Column(

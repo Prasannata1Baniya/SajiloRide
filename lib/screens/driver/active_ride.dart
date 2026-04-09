@@ -102,7 +102,7 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
                         ),
                       ),
                       Text(
-                        "Rs. ${widget.bookingData['price'] ?? '0'}",
+                        "Rs. ${widget.bookingData['fare'] ?? '0'}",
                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -134,8 +134,68 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
     );
   }
 
-  // --- LOGIC: OTP VERIFICATION + STATUS UPDATE ---
+
+// 2. Updated OTP Verification Logic
   Future<void> _updateTripStatus() async {
+  if (_currentStatus == 'accepted') {
+  final otpController = TextEditingController();
+
+  // Show OTP Dialog
+  final confirmed = await showGeneralDialog<bool>(
+  context: context,
+  pageBuilder: (context, anim1, anim2) => AlertDialog(
+  title: const Text("Enter Passenger OTP"),
+  content: TextField(
+  controller: otpController,
+  keyboardType: TextInputType.number,
+  decoration: const InputDecoration(hintText: "Ask passenger for 4-digit code"),
+  ),
+  actions: [
+  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
+  ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text("Start Trip")),
+  ],
+  ),
+  );
+
+  if (confirmed != true) return;
+
+  // Check OTP - Ensure we compare strings to strings
+  if (otpController.text.trim() != widget.bookingData['otp'].toString()) {
+  if (mounted) {
+  ScaffoldMessenger.of(context).showSnackBar(
+  const SnackBar(content: Text("Invalid OTP"), backgroundColor: Colors.red),
+  );
+  }
+  return;
+  }
+  }
+
+  // 3. Status Transition Logic
+  // If 'accepted' -> move to 'ongoing'. If 'ongoing' -> move to 'completed'.
+  final String nextStatus = _currentStatus == 'accepted' ? 'ongoing' : 'completed';
+
+  try {
+  await FirebaseFirestore.instance.collection('bookings').doc(widget.bookingId).update({
+  'status': nextStatus,
+  if (nextStatus == 'completed') 'completedAt': FieldValue.serverTimestamp(),
+  });
+
+  if (nextStatus == 'completed') {
+  if (mounted) Navigator.pop(context);
+  } else {
+  setState(() => _currentStatus = nextStatus);
+  }
+  } catch (e) {
+  debugPrint("Status Update Error: $e");
+  }
+  }
+
+}
+
+
+// --- LOGIC: OTP VERIFICATION + STATUS UPDATE ---
+
+/*Future<void> _updateTripStatus() async {
     // Ask driver to verify OTP before starting the trip
     if (_currentStatus == 'accepted') {
       final otpController = TextEditingController();
@@ -209,10 +269,7 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
         );
       }
     }
-  }
-}
-
-
+  }*/
 
 
 

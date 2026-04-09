@@ -14,7 +14,7 @@ class AuthProviderMethod extends ChangeNotifier {
     });
   }
 
-  // --- HELPER: FETCH ROLE ---
+  // --- FETCH ROLE ---
   Future<String> getUserRole(String uid) async {
     try {
       DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();

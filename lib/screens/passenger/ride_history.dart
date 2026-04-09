@@ -18,8 +18,8 @@ class RideHistoryContent extends StatelessWidget {
         title: const Text("Ride History"),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
       ),
 
       body: StreamBuilder<QuerySnapshot>(

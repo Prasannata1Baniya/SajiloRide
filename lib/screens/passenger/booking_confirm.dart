@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sajilo_ride/data/model/car_model.dart';
 import '../../navbar/navbar_config.dart';
-import '../../navbar/navbar_page.dart';
+import '../../widgets/app_shell.dart';
 
 class BookingConfirmContent extends StatelessWidget {
   final CarModel car;
@@ -87,7 +87,7 @@ class BookingConfirmContent extends StatelessWidget {
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => NavigationShell(
+                              builder: (context) => AppShell(
                                 userRole: userRole, // Use dynamic role
                                 initialIndex: 0,
                               ),
@@ -105,8 +105,8 @@ class BookingConfirmContent extends StatelessWidget {
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => NavigationShell(
-                              userRole: userRole, // Use dynamic role
+                            builder: (context) => AppShell(
+                              userRole: userRole,
                               initialIndex: 1,
                             ),
                           ),

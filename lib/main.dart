@@ -21,7 +21,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-    // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -29,7 +28,7 @@ class MyApp extends StatelessWidget {
        child:  const MaterialApp(
          debugShowCheckedModeBanner: false,
           title: 'Sajilo Ride',
-          home: OnBoardingPage(),
+          home: AuthWrapper(),
         ),
     );
   }
@@ -42,7 +41,7 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
    return Consumer<AuthProviderMethod>(builder: (context, authProvider, child) {
      if (authProvider.user == null) {
-       return const LoginPage();
+       return const OnBoardingPage();
      } else {
        return const RoleWrapper();
      }
