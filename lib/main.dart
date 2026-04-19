@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
-import 'package:sajilo_ride/screens/auth_page/login_page.dart';
 import 'package:sajilo_ride/screens/onboarding_page.dart';
 import 'package:sajilo_ride/widgets/app_shell.dart';
 import 'navbar/navbar_config.dart';
