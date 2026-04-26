@@ -270,11 +270,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ? 'Enter 10 digit number'
                                 : null,
                                 controller: _numController,
-                                style: const TextStyle(color: Colors.black),
+                                style: const TextStyle(color: Colors.black,fontWeight: FontWeight.bold),
                                 dropdownTextStyle: const TextStyle(color: Colors.black),
                                 cursorColor: Colors.orangeAccent,
                                 decoration: inputDecorate.buildInputDecoration("Phone Number").copyWith(
-                                  counterStyle: const TextStyle(color: Colors.white),
+                                  counterStyle: const TextStyle(color: Colors.black),
                                 ),
                                 initialCountryCode: 'NP',
                                 onChanged: (phone) {
@@ -298,9 +298,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                 initialValue: selectedRole,
                                 decoration: inputDecorate.buildInputDecoration("Select Role"),
                                 dropdownColor: Colors.black87,
-                                style: const TextStyle(color: Colors.white),
+                                style: const TextStyle(color: Colors.black,fontWeight: FontWeight.bold),
                                 borderRadius: BorderRadius.circular(25),
-                                items: roles.map((role) => DropdownMenuItem(value: role, child: Text(role))).toList(),
+                                items: roles.map((role) => DropdownMenuItem(value: role,
+                                    child: Text(role))).toList(),
                                 onChanged: (value) => setState(() {
                                   selectedRole = value;
                                   error = null;

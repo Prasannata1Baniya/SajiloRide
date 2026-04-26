@@ -292,8 +292,7 @@ class _LoginPageState extends State<LoginPage> {
                                       style: TextStyle(
                                           color: Colors.orangeAccent,
                                           fontWeight: FontWeight.bold,
-                                          decoration: TextDecoration
-                                              .underline)),
+                                          )),
                                 ),
                               ],
                             ),

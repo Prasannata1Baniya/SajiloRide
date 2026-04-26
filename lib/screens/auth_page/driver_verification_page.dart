@@ -101,64 +101,66 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        title: const Text("Driver Verification"),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Last Step!",
-                style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            const Text("Submit your documents to start earning with Sajilo Ride.",
-                style: TextStyle(color: Colors.white60, fontSize: 15)),
-            const SizedBox(height: 40),
-
-            _buildUploadCard(
-              title: "Driving License",
-              subtitle: "Upload a clear photo of your license",
-              data: _licenseData,
-              onTap: () => _pickImage(ImageSource.gallery, false),
-              onDelete: () => setState(() => _licenseData = null),
-            ),
-
-            const SizedBox(height: 20),
-
-            _buildUploadCard(
-              title: "Selfie Verification",
-              subtitle: "Take a live photo for verification",
-              data: _selfieData,
-              icon: Icons.face_retouching_natural,
-              onTap: () => _pickImage(ImageSource.camera, true),
-              onDelete: () => setState(() => _selfieData = null),
-            ),
-
-            const SizedBox(height: 40),
-
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orangeAccent,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  elevation: 5,
-                ),
-                onPressed: _isLoading ? null : _completeRegistration,
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("FINISH REGISTRATION",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.orange,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          title: const Text("Driver Verification"),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Last Step!",
+                  style: TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              const Text("Submit your documents to start earning with Sajilo Ride.",
+                  style: TextStyle(color: Colors.black, fontSize: 15)),
+              const SizedBox(height: 40),
+      
+              _buildUploadCard(
+                title: "Driving License",
+                subtitle: "Upload a clear photo of your license",
+                data: _licenseData,
+                onTap: () => _pickImage(ImageSource.gallery, false),
+                onDelete: () => setState(() => _licenseData = null),
               ),
-            ),
-          ],
+      
+              const SizedBox(height: 20),
+      
+              _buildUploadCard(
+                title: "Selfie Verification",
+                subtitle: "Take a live photo for verification",
+                data: _selfieData,
+                icon: Icons.face_retouching_natural,
+                onTap: () => _pickImage(ImageSource.camera, true),
+                onDelete: () => setState(() => _selfieData = null),
+              ),
+      
+              const SizedBox(height: 40),
+      
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orangeAccent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    elevation: 5,
+                  ),
+                  onPressed: _isLoading ? null : _completeRegistration,
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.black)
+                      : const Text("FINISH REGISTRATION",
+                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -183,7 +185,7 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
             height: 160,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(15),
               border: Border.all(
                   color: data == null ? Colors.orangeAccent.withValues(alpha: 0.5) : Colors.green,
@@ -195,7 +197,7 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
               children: [
                 Icon(icon, color: Colors.orangeAccent, size: 40),
                 const SizedBox(height: 8),
-                Text(subtitle, style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                Text(subtitle, style: const TextStyle(color: Colors.black, fontSize: 12)),
               ],
             )
                 : Stack(
