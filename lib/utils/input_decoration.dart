@@ -14,8 +14,8 @@ class InputDecorate {  InputDecoration buildInputDecoration(String label, {Widge
         horizontal: 16.0),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(15),
-      //borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-      borderSide: BorderSide(color: Colors.white),
+      borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.3)),
+     // borderSide: BorderSide(color: Colors.white),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(15),
