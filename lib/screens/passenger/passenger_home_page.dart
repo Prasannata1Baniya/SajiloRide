@@ -833,9 +833,8 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      margin: const EdgeInsets.only(left: 8), // Adds space between car name and badge
+      margin: const EdgeInsets.only(left: 8),
       decoration: BoxDecoration(
-        // withValues is the modern, non-deprecated way to handle transparency
         color: badgeColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
       ),
