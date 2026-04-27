@@ -1,6 +1,7 @@
 
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dart_geohash/dart_geohash.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -67,31 +68,62 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   void initState() {
     super.initState();
     _getCurrentLocation();
-  }
+ }
 
   Future<void> _getCurrentLocation() async {
+    // 1. Handle Permissions First
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.deniedForever) {
+        // User has permanently denied, you might want to show a SnackBar
+        if (!mounted) return;
+
+        // 2. Show the SnackBar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Location permissions are permanently denied. Please enable them in settings.'),
+            backgroundColor: Colors.redAccent,
+            action: SnackBarAction(
+              label: 'Settings',
+              textColor: Colors.white,
+              onPressed: () {
+                // 3. Open the actual App Settings on the phone
+                Geolocator.openAppSettings();
+              },
+            ),
+          ),
+        );
+        return;
+      }
     }
 
     try {
+      // 2. Get high-accuracy position
       Position position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
 
       final current = LatLng(position.latitude, position.longitude);
+
       setState(() {
         pickupLocation = current;
-        _currentCenter = current;
+        _currentCenter = current; // Syncs the map center
       });
 
-      _mapController.move(current, 14);
+      // 3. Update the Map UI
+      _mapController.move(current, 15);
 
+      // 4. Convert coordinates to a readable name for the UI
       await _getAddress(current, true);
 
     } catch (e) {
       debugPrint("Location error: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Could not fetch location. Please pick manually."))
+        );
+      }
     }
   }
 
@@ -579,48 +611,38 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     );
   }*/
 
+  /*Widget _buildRideSelector() {
+    String passengerHash = GeoHasher().encode(pickupLocation!.longitude, pickupLocation!.latitude);
+    String searchPrefix = passengerHash.substring(0, 4);
 
-
-  // 1. Fixed StreamBuilder Logic
-  Widget _buildRideSelector() {
     return StreamBuilder<QuerySnapshot>(
       // Querying 'users' collection for drivers to keep DB unified
-      stream: FirebaseFirestore.instance
+      /*stream: FirebaseFirestore.instance
           .collection('users')
-          .where('role', isEqualTo: 'driver')
-          .where('isOnline',isEqualTo: true)
-          .snapshots(),
+          .where('role', isEqualTo: 'driver').where('isOnline',isEqualTo: true).snapshots(),*/
+        stream: FirebaseFirestore.instance
+            .collection('drivers')
+            .where('isOnline', isEqualTo: true)
+        // 3. Query drivers whose geohash starts with our prefix
+            .where('location.geohash', isGreaterThanOrEqualTo: searchPrefix)
+            .where('location.geohash', isLessThanOrEqualTo: '$searchPrefix\uf8ff')
+            .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
+        /*if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text("No drivers nearby 📍"));
+        }*/
+
         if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-          liveCars = snapshot.data!.docs.map((doc) {
+         liveCars = snapshot.data!.docs.map((doc) {
             // Get the data map from the document
             final d = doc.data() as Map<String, dynamic>;
             // Pass the map and the document ID to your factory constructor
             return CarModel.fromMap(d, doc.id);
           }).toList();
-        }
-
-        /*if (snapshot.hasData) {
-          liveCars = snapshot.data!.docs.map((doc) {
-            var d = doc.data() as Map<String, dynamic>;
-            return CarModel(model: model,
-                carNumber: carNumber,
-                image: image,
-                driverId: driverId,
-                driverName: driverName,
-                phone: phone,
-                vehicleType: vehicleType,
-                pricePerKm: 0,
-                rating: rating,
-                isOnline: isOnline,
-                latitude: latitude,
-                longitude: longitude)
-          }).toList();
-        }*/
 
         final all = [...liveCars, ...carList];
 
@@ -654,10 +676,15 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                 backgroundColor: Colors.grey[200],
                 backgroundImage: currentCar.image.startsWith('http')
                     ? NetworkImage(currentCar.image)
-                    : AssetImage(currentCar.image) as ImageProvider,
+                    : AssetImage('assets/images/car1.jpg') as ImageProvider,
               ),
-              title: Text(currentCar.model, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: const Text("⚡ 4 min away • 4 Seats"),
+              title: Row(
+                children: [
+                  Text(currentCar.model, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  _buildFuelBadge(currentCar.vehicleType),
+                ],
+              ),
+              subtitle:  Text("⚡ ${currentCar.carNumber} • 4 Seats"),
               trailing: Text(
                 distance > 0
                     ? "Rs ${(distance * currentCar.pricePerKm).toStringAsFixed(0)}"
@@ -673,7 +700,153 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
             );
           },
         );
+      }
+      }
+    );
+  }*/
+
+  Widget _buildRideSelector() {
+    // 1. Get the current Passenger's Geohash
+    // Ensure pickupLocation is not null before this call
+    if (pickupLocation == null) {
+      return const Center(child: Text("Please select a pickup point"));
+    }
+
+    String passengerHash = GeoHasher().encode(pickupLocation!.longitude, pickupLocation!.latitude);
+
+    // 2. Create a Search Prefix (4 characters = ~20km area, 5 characters = ~5km area)
+    String searchPrefix = passengerHash.substring(0, 4);
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('drivers')
+          .where('isOnline', isEqualTo: true)
+      // String range query to find drivers in the same Geohash area
+          .where('location.geohash', isGreaterThanOrEqualTo: searchPrefix)
+          .where('location.geohash', isLessThanOrEqualTo: '$searchPrefix\uf8ff')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text("No drivers nearby 📍"));
+        }
+
+        // 3. Map Firestore documents to your CarModel
+        List<CarModel> rawDrivers = snapshot.data!.docs.map((doc) {
+          return CarModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+        }).toList();
+
+        // 4. REAL-WORLD ACCURACY: Filter by exact distance (e.g., 5.0 km)
+        // This ensures we don't show drivers who are 15km away but in the same Geohash.
+        List<CarModel> nearbyCars = rawDrivers.where((driver) {
+          double distInMeters = Geolocator.distanceBetween(
+            pickupLocation!.latitude,
+            pickupLocation!.longitude,
+            driver.latitude,
+            driver.longitude,
+          );
+          return distInMeters <= 5000; // 5000 meters = 5km
+        }).toList();
+
+        if (nearbyCars.isEmpty) {
+          return const Center(child: Text("Drivers are nearby, but too far for pickup."));
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(10),
+          itemCount: nearbyCars.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final currentCar = nearbyCars[index];
+            bool isSel = selectedCar?.driverId == currentCar.driverId;
+
+            return ListTile(
+              onTap: () async {
+                // Navigate to detail page
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CarDriverDetailPage(car: currentCar),
+                  ),
+                );
+
+                if (result == true && context.mounted) {
+                  setState(() {
+                    selectedCar = currentCar;
+                    // Fare = Distance (km) * Price per Km
+                    fare = distance > 0 ? (distance * currentCar.pricePerKm) : 0;
+                  });
+                }
+              },
+              leading: CircleAvatar(
+                radius: 28,
+                backgroundColor: Colors.grey[200],
+                backgroundImage: (currentCar.image.isNotEmpty && currentCar.image.startsWith('http'))
+                    ? NetworkImage(currentCar.image)
+                    : const AssetImage('assets/images/default_car.png') as ImageProvider,
+              ),
+              title: Row(
+                children: [
+                  Text(currentCar.model, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  _buildFuelBadge(currentCar.vehicleType),
+                ],
+              ),
+              subtitle: Text("⚡ ${currentCar.carNumber} • 4 Seats"),
+              trailing: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    distance > 0
+                        ? "Rs ${(distance * currentCar.pricePerKm).toStringAsFixed(0)}"
+                        : "Fare Info",
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 16),
+                  ),
+                  if (distance > 0)
+                    Text("${currentCar.pricePerKm}/km", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                ],
+              ),
+              selected: isSel,
+              selectedTileColor: Colors.orange.withValues(alpha: 0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: isSel ? Colors.orange : Colors.transparent, width: 2),
+              ),
+            );
+          },
+        );
       },
+    );
+  }
+
+  Widget _buildFuelBadge(String? type) {
+    // Use 'Petrol' as a fallback if the type is null
+    final fuelType = type?.toLowerCase() ?? 'petrol';
+    bool isEV = fuelType == 'electric';
+
+    // Define colors based on type
+    Color badgeColor = isEV ? Colors.green : Colors.blue;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      margin: const EdgeInsets.only(left: 8), // Adds space between car name and badge
+      decoration: BoxDecoration(
+        // withValues is the modern, non-deprecated way to handle transparency
+        color: badgeColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        fuelType.toUpperCase(),
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: badgeColor,
+        ),
+      ),
     );
   }
 
@@ -695,7 +868,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         ),
 
         const SizedBox(height: 25),
-
 
         SizedBox(
           width: double.infinity,
