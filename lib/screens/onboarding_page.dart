@@ -161,8 +161,9 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Flexible(
-          child: Text('SAJILO YATRA', style: AppTextStyles.headingWhiteLogo),
+        Flexible(
+          child:  isDesktop ? const Text('SAJILO YATRA', style: AppTextStyles.headingWhiteLogo) :
+          const Text('SAJILO YATRA', style: TextStyle(fontSize: 17)),
         ),
 
         // DESKTOP MENU
